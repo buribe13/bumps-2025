@@ -1,0 +1,248 @@
+@font-face {
+  font-family: "Ac437 IBM DOS ISO9";
+  src: url("./Fonts/Ac437_IBM_DOS_ISO9 copy.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #ffffff;
+  --text: #1b1b1b;
+  --muted: #7b7b7b;
+  --card-bg: #f4f4f4;
+  --accent: #d8f0cf;
+  --accent-dot: #7ad56b;
+  --danger-dot: #aa2e2e;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Ac437 IBM DOS ISO9", system-ui, sans-serif;
+  font-size: 16px; /* 19pt ≈ 25.3px */
+  letter-spacing: 0.08em; /* 8% letter spacing */
+}
+
+/* Ensure all elements use the same font size */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+input,
+select,
+textarea,
+small,
+sub,
+sup,
+a,
+p,
+div,
+span,
+dl,
+dt,
+dd,
+li {
+  font-size: inherit;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 20px 28px;
+  background: linear-gradient(
+    180deg,
+    var(--bg) 60%,
+    rgba(250, 250, 247, 0.5) 100%
+  );
+  backdrop-filter: blur(2px);
+}
+
+.brand {
+  font-weight: 600;
+}
+.subtitle {
+  color: var(--muted);
+}
+
+.calendar {
+  padding: 10px 20px 40px;
+  padding-left: 0; /* remove left padding only for the journal container */
+}
+
+.months {
+  display: flex;
+  flex-direction: column; /* stack months vertically */
+  gap: 56px;
+  overflow: visible;
+  padding-bottom: 24px;
+}
+
+.month {
+  padding: 0; /* remove left padding so cards can touch screen edge */
+}
+
+.month-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 6px 4px 24px;
+}
+
+.month-title {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 37px;
+  letter-spacing: 0em;
+}
+.month-year {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 37px;
+  letter-spacing: 0em;
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.days {
+  display: flex;
+  flex-direction: row-reverse; /* reverse visual order */
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  padding-left: 0; /* allow spill to screen edge */
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.days::-webkit-scrollbar {
+  height: 8px;
+}
+
+.days::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.days::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.day {
+  flex: 0 0 320px; /* fixed width, don't shrink */
+  scroll-snap-align: end; /* snap with right edge when reversed */
+}
+
+.day-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: none;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  padding: 12px;
+}
+
+/* Uppercase all content inside the song-day containers */
+.day-card * {
+  text-transform: uppercase;
+}
+
+.day-meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.day-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 15px; /* 15pt ≈ 20px */
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  color: #ff0000;
+}
+
+.date {
+  color: var(--muted);
+}
+.weekday {
+  color: var(--muted);
+}
+
+.songs {
+  margin-top: 10px;
+  display: grid;
+  gap: 24px;
+}
+
+.songs.blank {
+  min-height: 120px; /* reserved space for future top-3 tracks */
+}
+
+.song {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 9px;
+  margin-left: 7px;
+  background: var(--accent-dot);
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.song .title {
+}
+.song .artist {
+  color: var(--muted);
+}
+.song .year {
+  color: var(--muted);
+}
+
+/* Lyrics row removed in markup; keep rule empty for safety */
+.lyrics {
+  display: none;
+}
+
+.site-footer {
+  padding: 20px 28px 40px;
+  color: var(--muted);
+}
+
+/* Hide the connect button per request */
+#loginButton {
+  display: none !important;
+}
+
+.auth-status {
+  display: none;
+}
+
+/* Horizontal scroll maintained on all screen sizes */
+@media (max-width: 900px) {
+  .day {
+    flex: 0 0 280px; /* slightly narrower on mobile */
+  }
+}

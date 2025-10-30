@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bumps — Listening Journal</title>
+    <link
+      rel="preload"
+      href="./Fonts/Ac437_IBM_DOS_ISO9 copy.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+     <link
+       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+       rel="stylesheet"
+     />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand">a public diary scored by my top 3 tracks of the day</div>
+    </header>
+
+    <section id="spotifyAuth" class="spotify-auth" aria-live="polite">
+      <div class="auth-row">
+        <button id="loginButton" type="button">Connect Spotify</button>
+        <button id="logoutButton" type="button" hidden>Disconnect</button>
+        <span id="authStatus" class="auth-status">Not connected</span>
+      </div>
+      <div id="profile" class="profile" hidden>
+        <h2 id="displayName"></h2>
+        <div id="avatar"></div>
+        <dl class="profile-fields">
+          <dt>ID</dt>
+          <dd id="id"></dd>
+          <dt>Email</dt>
+          <dd id="email"></dd>
+          <dt>URI</dt>
+          <dd>
+            <a id="uri" href="#" target="_blank" rel="noopener noreferrer"></a>
+          </dd>
+          <dt>API URL</dt>
+          <dd>
+            <a id="url" href="#" target="_blank" rel="noopener noreferrer"></a>
+          </dd>
+          <dt>Image URL</dt>
+          <dd id="imgUrl"></dd>
+        </dl>
+      </div>
+    </section>
+
+    <main class="calendar">
+      <div id="months" class="months" aria-live="polite"></div>
+    </main>
+
+    
+
+    <script src="./app.js"></script>
+  </body>
+</html>
