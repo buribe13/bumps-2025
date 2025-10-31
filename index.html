@@ -18,6 +18,23 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div
+      class="auth-bar"
+      style="
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 10;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      "
+    >
+      <button id="loginButton" type="button">Connect Spotify</button>
+      <button id="logoutButton" type="button" hidden>Disconnect</button>
+      <span id="authStatus" style="display: none">Connected</span>
+    </div>
+
     <main class="frame-root" aria-label="MacBook Pro 16 - 1">
       <div class="frame-grid">
         <section class="left-stack" aria-label="Songs">
@@ -184,6 +201,13 @@
         </aside>
       </div>
     </main>
+
+    <section
+      id="profile"
+      hidden
+      aria-label="Spotify Profile"
+      style="display: none"
+    ></section>
 
     <script src="./app.js"></script>
   </body>
