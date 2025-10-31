@@ -21,6 +21,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
@@ -35,8 +39,15 @@
     <main class="frame-root" aria-label="MacBook Pro 16 - 1">
       <div class="frame-grid">
         <section class="left-stack" aria-label="Songs">
-          <div class="now-playing-pill">
-            <span class="marquee">SONG NAME / 0:24</span>
+          <div class="now-playing-pill board-container">
+            <div class="board dot-matrix-display">
+              <div class="board__content display-text">
+                <div class="text-track">
+                  <div class="text">SONG NAME / 0:24</div>
+                  <div class="text text--clone">SONG NAME / 0:24</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="song-cards">
