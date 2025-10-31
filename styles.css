@@ -881,8 +881,8 @@ li {
 }
 
 /* Auth buttons: uppercase retro font, no container styling */
-.auth-bar button#loginButton,
-.auth-bar button#logoutButton {
+.auth-bar button#loginButtonAuthBar,
+.auth-bar button#logoutButtonAuthBar {
   font-family: "Ac437 IBM DOS ISO9", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -894,13 +894,13 @@ li {
   -webkit-text-stroke: 1px #000000;
   text-stroke: 1px #000000;
 }
-.auth-bar button#loginButton:hover,
-.auth-bar button#logoutButton:hover {
+.auth-bar button#loginButtonAuthBar:hover,
+.auth-bar button#logoutButtonAuthBar:hover {
   text-decoration: underline;
 }
 
 /* Disconnect button: 60% opacity */
-.auth-bar button#logoutButton {
+.auth-bar button#logoutButtonAuthBar {
   opacity: 0.6;
 }
 
