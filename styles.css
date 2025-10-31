@@ -967,6 +967,10 @@ li {
   letter-spacing: 0.03em;
   line-height: 21px;
   margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
+  text-align: left;
+  width: 100%;
 }
 .dots {
   display: flex;
