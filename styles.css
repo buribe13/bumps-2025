@@ -675,17 +675,22 @@ li {
 /* Song badge notification bubbles - Apple liquid glass style */
 .song-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -5px;
+  right: -8px;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Inter", system-ui, sans-serif;
+  padding-left: 3px;
+  padding-top: 2px;
+  font-family: "Ac437 IBM DOS ISO9", system-ui, sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
+  color: #ffffff;
+  -webkit-text-stroke: 1px #ffffff;
+  text-stroke: 0px #ffffff;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
@@ -712,7 +717,9 @@ li {
   backdrop-filter: blur(28px) saturate(200%);
   -webkit-backdrop-filter: blur(28px) saturate(200%);
   border: 1px solid rgba(255, 200, 0, 0.7);
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
+  -webkit-text-stroke: 1px #ffffff;
+  text-stroke: 1px #ffffff;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 215, 0, 0.3);
@@ -724,7 +731,9 @@ li {
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(200, 200, 200, 0.65);
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
+  -webkit-text-stroke: 1px #ffffff;
+  text-stroke: 1px #ffffff;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 8px rgba(192, 192, 192, 0.25);
@@ -736,7 +745,9 @@ li {
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(222, 184, 135, 0.4);
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
+  -webkit-text-stroke: 1px #ffffff;
+  text-stroke: 1px #ffffff;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .listen-btn {
@@ -845,7 +856,7 @@ li {
 }
 
 .journal-card {
-  width: 339px;
+  width: 434px;
   height: 598px;
   border-radius: 80px;
   padding: 42px 40px;
