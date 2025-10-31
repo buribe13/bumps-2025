@@ -662,10 +662,7 @@ li {
   pointer-events: none;
   overflow: hidden;
   transition: max-height 220ms ease, margin-top 220ms ease, opacity 200ms ease,
-    transform 220ms ease, padding 220ms ease;
-}
-.listen-btn:hover {
-  opacity: 0.85;
+    transform 220ms ease, padding 220ms ease, background-color 240ms ease;
 }
 .song-card:not(.dimmed) .listen-btn {
   align-self: center;
@@ -676,6 +673,9 @@ li {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+}
+.song-card:not(.dimmed) .listen-btn:hover {
+  background: rgba(0, 0, 0, 0.16);
 }
 .listen-btn span {
   font-family: "Inter", system-ui, sans-serif;
@@ -694,7 +694,7 @@ li {
 }
 
 /* Match journal arrows: subtle opacity change on hover */
-.listen-btn:hover .arrow {
+.song-card:not(.dimmed) .listen-btn:hover .arrow {
   opacity: 0.85;
 }
 
@@ -715,6 +715,15 @@ li {
 .auth-bar button#loginButton:hover,
 .auth-bar button#logoutButton:hover {
   text-decoration: underline;
+}
+
+/* Disabled Connect button styling */
+.auth-bar button#loginButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.auth-bar button#loginButton:disabled:hover {
+  text-decoration: none;
 }
 
 /* Disconnect button: 60% opacity */
