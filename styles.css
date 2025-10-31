@@ -503,18 +503,46 @@ li {
   display: grid;
   place-items: center;
   padding: 40px 24px;
-  /* soft blue to peach gradient background matching mock */
+  /* organic watercolor-style white to subtle pastel red gradient - Japan inspired */
   background: radial-gradient(
-      1200px 800px at 20% 0%,
-      #c6d8fb 0%,
-      rgba(198, 216, 251, 0) 60%
+      ellipse 1400px 900px at 15% 10%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.5) 40%,
+      transparent 70%
     ),
     radial-gradient(
-      1200px 900px at 95% 100%,
-      #faf7f2 0%,
-      rgba(250, 247, 242, 0) 60%
+      ellipse 1600px 1100px at 85% 90%,
+      rgba(255, 245, 245, 0.6) 0%,
+      rgba(255, 248, 248, 0.4) 35%,
+      rgba(255, 250, 250, 0.2) 60%,
+      transparent 80%
     ),
-    linear-gradient(180deg, #bcd3f6 0%, #faf7f2 100%);
+    radial-gradient(
+      ellipse 1000px 1200px at 50% 50%,
+      rgba(255, 248, 248, 0.35) 0%,
+      rgba(255, 250, 250, 0.2) 45%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 800px 600px at 25% 70%,
+      rgba(255, 248, 248, 0.45) 0%,
+      rgba(255, 250, 250, 0.25) 50%,
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 1200px 800px at 75% 25%,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 252, 252, 0.35) 40%,
+      transparent 70%
+    ),
+    linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(255, 250, 250, 0.4) 30%,
+      rgba(255, 248, 248, 0.3) 60%,
+      rgba(255, 245, 245, 0.5) 100%
+    ),
+    #fefefe;
 }
 
 /* Subtle noise overlay over the background */
@@ -661,7 +689,7 @@ li {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: .5px solid rgba(255, 255, 255, 0.3);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
   z-index: 1;
@@ -770,12 +798,12 @@ li {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   background: transparent;
-  color: #fff;
+  color: #000;
   border: none;
   padding: 0;
   cursor: pointer;
-  -webkit-text-stroke: 1px #ffffff;
-  text-stroke: 1px #ffffff;
+  -webkit-text-stroke: 1px #000000;
+  text-stroke: 1px #000000;
 }
 .auth-bar button#loginButton:hover,
 .auth-bar button#logoutButton:hover {
@@ -803,12 +831,12 @@ li {
   text-stroke: 1px #ffffff;
 }
 
-/* Container for the three song cards stacked with 4px vertical spacing */
+/* Container for the three song cards stacked with 24px vertical spacing */
 .song-cards {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 24px;
   margin-top: 48px; /* fixed gap between pill and the cards */
 }
 
@@ -920,6 +948,7 @@ button {
 /* Containers: add subtle hairline borders */
 .song-card,
 .journal-card,
+.gradient-customizer-card,
 .now-playing-pill,
 .picker-dialog,
 .day-card {
@@ -929,7 +958,281 @@ button {
 /* Subtle drop shadows for main containers (kept very light) */
 .song-card,
 .journal-card,
+.gradient-customizer-card,
 .now-playing-pill,
 .day-card {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* --- Gradient Customizer Overlay ------------------------------------------------ */
+.gradient-customizer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.gradient-customizer-overlay[hidden] {
+  display: none !important;
+}
+
+.gradient-customizer-card {
+  width: min(400px, 90vw);
+  max-height: 90vh;
+  border-radius: 80px;
+  padding: 42px 40px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(102, 102, 102, 0.2) 100%
+  );
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  backdrop-filter: blur(10px);
+  gap: 24px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+
+.customizer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.customizer-title {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+}
+
+.customizer-close {
+  background: rgba(0, 0, 0, 0.1);
+  border: 0.25px solid rgba(0, 0, 0, 0.1);
+  color: #fff;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 240ms ease;
+  width: 40px;
+  height: 40px;
+}
+
+.customizer-close:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.customizer-close svg {
+  display: block;
+  transition: opacity 240ms ease;
+}
+
+.customizer-close:hover svg {
+  opacity: 0.85;
+}
+
+/* Floating Action Buttons Container */
+.fab-container {
+  position: fixed;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 0.25px solid rgba(0, 0, 0, 0.1);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 240ms ease, transform 240ms ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.fab-btn:hover {
+  background: rgba(0, 0, 0, 0.28);
+  transform: scale(1.05);
+}
+
+.fab-btn:active {
+  transform: scale(0.98);
+}
+
+.fab-btn svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.fab-btn[hidden] {
+  display: none !important;
+}
+
+.customizer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.color-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.color-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.color-input-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.color-picker {
+  width: 60px;
+  height: 40px;
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+  padding: 2px;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 10px;
+}
+
+.color-text-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  outline: none;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.color-text-input:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.customizer-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.gradient-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #fff;
+  border: 0.25px solid rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background-color 240ms ease;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+}
+
+.gradient-btn:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.gradient-btn:hover .arrow {
+  opacity: 0.85;
+}
+
+.gradient-btn .arrow {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background: #000;
+  border-radius: 50%;
+  padding: 4px;
+  transition: opacity 240ms ease;
+}
+
+.preset-selector {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preset-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+}
+
+.preset-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preset-nav-btn {
+  flex-shrink: 0;
+}
+
+.preset-name {
+  flex: 1;
+  text-align: center;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  color: #fff;
+  padding: 8px 12px;
 }

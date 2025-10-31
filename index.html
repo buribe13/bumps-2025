@@ -22,20 +22,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
   <body>
-    <div
-      class="auth-bar"
-      style="
-        position: fixed;
-        top: 12px;
-        right: 12px;
-        z-index: 10;
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      "
-    >
+    <div class="auth-bar" hidden>
       <button id="loginButton" type="button">Connect Spotify</button>
       <button id="logoutButton" type="button" hidden>Disconnect</button>
       <span class="auth-separator" style="display: none">⋅</span>
@@ -152,7 +142,7 @@
           <h1 class="journal-title">Journal</h1>
           <div class="journal-date">10.30.25</div>
           <p class="journal-text">
-            This week, I began collecting screenshots from my roommates’ devices
+            This week, I began collecting screenshots from my roommates' devices
             to better understand their relationships to productivity,
             creativity, and organization. By asking Chris, Dalton, and Aleah to
             send me screenshots each Wednesday—the peak day of work—I can
@@ -212,8 +202,337 @@
             </button>
           </div>
         </aside>
+
       </div>
     </main>
+
+    <!-- Gradient Customizer Overlay -->
+    <div class="gradient-customizer-overlay" hidden aria-label="Background Customizer">
+      <div class="gradient-customizer-card">
+        <div class="customizer-header">
+          <h2 class="customizer-title">Background</h2>
+          <button
+            class="customizer-close"
+            type="button"
+            aria-label="Close customizer"
+            id="closeCustomizer"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M18 6L6 18M6 6L18 18"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+          <div class="customizer-controls">
+            <div class="color-control-group">
+              <label class="color-label">Color 1</label>
+              <div class="color-input-wrapper">
+                <input
+                  type="color"
+                  id="color1"
+                  class="color-picker"
+                  value="#fefefe"
+                />
+                <input
+                  type="text"
+                  id="color1-text"
+                  class="color-text-input"
+                  value="#fefefe"
+                />
+              </div>
+            </div>
+            <div class="color-control-group">
+              <label class="color-label">Color 2</label>
+              <div class="color-input-wrapper">
+                <input
+                  type="color"
+                  id="color2"
+                  class="color-picker"
+                  value="#fff5f5"
+                />
+                <input
+                  type="text"
+                  id="color2-text"
+                  class="color-text-input"
+                  value="#fff5f5"
+                />
+              </div>
+            </div>
+            <div class="color-control-group">
+              <label class="color-label">Color 3</label>
+              <div class="color-input-wrapper">
+                <input
+                  type="color"
+                  id="color3"
+                  class="color-picker"
+                  value="#fff8f8"
+                />
+                <input
+                  type="text"
+                  id="color3-text"
+                  class="color-text-input"
+                  value="#fff8f8"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="customizer-actions">
+            <button class="gradient-btn" type="button" id="applyGradient">
+              <span>Apply</span>
+              <svg
+                class="arrow"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 6L15 12L9 18"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <button class="gradient-btn" type="button" id="resetGradient">
+              <span>Reset</span>
+              <svg
+                class="arrow"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 6L15 12L9 18"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="preset-selector">
+            <div class="preset-label">Presets</div>
+            <div class="preset-nav">
+              <button
+                class="pager-btn left preset-nav-btn"
+                type="button"
+                aria-label="Previous preset"
+                id="prevPreset"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <div class="preset-name" id="presetName">Default</div>
+              <button
+                class="pager-btn right preset-nav-btn"
+                type="button"
+                aria-label="Next preset"
+                id="nextPreset"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M9 6L15 12L9 18"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container">
+      <button
+        class="fab-btn"
+        type="button"
+        aria-label="Customize background"
+        id="openCustomizer"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 2L2 7L12 12L22 7L12 2Z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M2 17L12 22L22 17"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M2 12L12 17L22 12"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="fab-btn"
+        type="button"
+        id="loginButton"
+        aria-label="Connect Spotify"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.78 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.242 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="fab-btn"
+        type="button"
+        id="logoutButton"
+        aria-label="Disconnect Spotify"
+        hidden
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <polyline
+            points="16 17 21 12 16 7"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <line
+            x1="21"
+            y1="12"
+            x2="9"
+            y2="12"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      <button
+        class="fab-btn"
+        type="button"
+        id="screenshotButton"
+        aria-label="Take screenshot"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+            ry="2"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle
+            cx="8.5"
+            cy="8.5"
+            r="1.5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <polyline
+            points="21 15 16 10 5 21"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
 
     <section
       id="profile"
