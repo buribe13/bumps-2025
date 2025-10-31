@@ -18,80 +18,76 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="site-container">
-      <header class="site-header"></header>
+    <main class="frame-root" aria-label="MacBook Pro 16 - 1">
+      <div class="frame-grid">
+        <section class="left-stack" aria-label="Songs">
+          <div class="now-playing-pill">SONG NAME / 0:24</div>
 
-      <section id="spotifyAuth" class="spotify-auth" aria-live="polite">
-        <div class="auth-row">
-          <button id="loginButton" type="button">Connect Spotify</button>
-          <button id="logoutButton" type="button" hidden>Disconnect</button>
-          <span id="authStatus" class="auth-status">Not connected</span>
-        </div>
-        <div id="profile" class="profile" hidden>
-          <h2 id="displayName"></h2>
-          <div id="avatar"></div>
-          <dl class="profile-fields">
-            <dt>ID</dt>
-            <dd id="id"></dd>
-            <dt>Email</dt>
-            <dd id="email"></dd>
-            <dt>URI</dt>
-            <dd>
-              <a
-                id="uri"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-              ></a>
-            </dd>
-            <dt>API URL</dt>
-            <dd>
-              <a
-                id="url"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-              ></a>
-            </dd>
-            <dt>Image URL</dt>
-            <dd id="imgUrl"></dd>
-          </dl>
-        </div>
-      </section>
+          <div class="song-cards">
+            <article class="song-card">
+              <div class="song-row">
+                <div class="song-meta">
+                  <div class="song-title">“Song Name Title 1”</div>
+                  <div class="song-artist">Artist 1</div>
+                </div>
+                <div class="song-art"></div>
+              </div>
+              <button class="listen-btn" type="button">
+                <span>Listen</span>
+                <img
+                  class="arrow"
+                  alt="→"
+                  src="https://www.figma.com/api/mcp/asset/7859f2e6-f8fa-4669-9ea1-b2f256132fdf"
+                />
+              </button>
+            </article>
 
-      <main class="calendar">
-        <div id="months" class="months" aria-live="polite"></div>
-      </main>
-    </div>
+            <article class="song-card dimmed">
+              <div class="song-row">
+                <div class="song-meta">
+                  <div class="song-title">“Song Name Title 2”</div>
+                  <div class="song-artist">Artist 2</div>
+                </div>
+                <div class="song-art"></div>
+              </div>
+            </article>
 
-    <!-- Overlay for breadcrumb selections -->
-    <div
-      id="pickerOverlay"
-      class="picker-overlay"
-      hidden
-      aria-modal="true"
-      role="dialog"
-    >
-      <div class="picker-dialog" role="document">
-        <div class="picker-header">
-          <div id="pickerTitle" class="picker-title">Select</div>
-          <button
-            id="pickerClose"
-            class="picker-close"
-            type="button"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
-        <div
-          id="pickerOptions"
-          class="picker-options"
-          role="listbox"
-          aria-label="Options"
-        ></div>
+            <article class="song-card dimmed">
+              <div class="song-row">
+                <div class="song-meta">
+                  <div class="song-title">“Song Name Title 3”</div>
+                  <div class="song-artist">Artist 3</div>
+                </div>
+                <div class="song-art"></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <aside class="journal-card" aria-label="Journal">
+          <h1 class="journal-title">Journal</h1>
+          <div class="journal-date">10.30.25</div>
+          <p class="journal-text">
+            This week, I began collecting screenshots from my roommates’ devices
+            to better understand their relationships to productivity,
+            creativity, and organization. By asking Chris, Dalton, and Aleah to
+            send me screenshots each Wednesday—the peak day of work—I can
+            observe patterns in how they curate (or neglect) their digital
+            environments. Much like...
+          </p>
+          <div class="dots" role="tablist" aria-label="pagination">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="pager">
+            <button class="pager-btn left" type="button">&lt;--</button>
+            <button class="pager-btn right" type="button">--&gt;</button>
+          </div>
+        </aside>
       </div>
-    </div>
+    </main>
 
     <script src="./app.js"></script>
   </body>
