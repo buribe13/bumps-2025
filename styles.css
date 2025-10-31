@@ -545,6 +545,26 @@ li {
     #fefefe;
 }
 
+/* Blurred background image overlay */
+.frame-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(40px);
+  transform: scale(1.1);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.frame-root.has-background-image::after {
+  opacity: 1;
+}
+
 /* Subtle noise overlay over the background */
 .frame-root::before {
   content: "";
@@ -555,6 +575,7 @@ li {
   background-size: 120px 120px;
   opacity: 0.18;
   mix-blend-mode: multiply;
+  z-index: 1;
 }
 
 .frame-grid {
@@ -1189,6 +1210,77 @@ button {
   flex-direction: column;
   gap: 20px;
   width: 100%;
+}
+
+.image-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-upload-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.image-upload-input {
+  display: none;
+}
+
+.image-upload-label {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.image-upload-label:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.image-remove-btn {
+  background: rgba(0, 0, 0, 0.2);
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.image-remove-btn:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.image-preview {
+  width: 100%;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(20px);
+  transform: scale(1.1);
 }
 
 .color-control-group {

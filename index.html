@@ -240,6 +240,29 @@
           </button>
         </div>
           <div class="customizer-controls">
+            <div class="image-control-group">
+              <label class="color-label">Background Image</label>
+              <div class="image-upload-wrapper">
+                <input
+                  type="file"
+                  id="backgroundImage"
+                  class="image-upload-input"
+                  accept="image/*"
+                />
+                <label for="backgroundImage" class="image-upload-label">
+                  <span id="imageUploadText">Choose Image</span>
+                </label>
+                <button
+                  type="button"
+                  id="removeImage"
+                  class="image-remove-btn"
+                  hidden
+                >
+                  Remove
+                </button>
+              </div>
+              <div class="image-preview" id="imagePreview" hidden></div>
+            </div>
             <div class="color-control-group">
               <label class="color-label">Color 1</label>
               <div class="color-input-wrapper">
