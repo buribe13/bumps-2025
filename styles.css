@@ -551,9 +551,15 @@ li {
   border-radius: 80px;
   padding: 24px 48px;
   backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: opacity 220ms ease, transform 220ms ease, padding 220ms ease;
 }
 .song-card.dimmed {
   opacity: 0.4;
+  transform: scale(0.98);
+  padding: 16px 48px; /* shrink height for inactive state */
 }
 .song-row {
   display: flex;
@@ -585,6 +591,11 @@ li {
   height: 100px;
   background: #fff;
   border-radius: 24px;
+  transition: width 220ms ease, height 220ms ease;
+}
+.song-card.dimmed .song-art {
+  width: 76px;
+  height: 76px;
 }
 .listen-btn {
   margin-top: 12px;
@@ -597,6 +608,23 @@ li {
   border: 0;
   border-radius: 24px;
   cursor: pointer;
+  /* collapsed by default; expands on active card */
+  max-height: 0;
+  margin-top: 0;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  overflow: hidden;
+  transition: max-height 220ms ease, margin-top 220ms ease, opacity 200ms ease,
+    transform 220ms ease;
+}
+.song-card:not(.dimmed) .listen-btn {
+  align-self: center;
+  max-height: 60px; /* enough to fully show content */
+  margin-top: 12px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 .listen-btn span {
   font-family: "Inter", system-ui, sans-serif;
