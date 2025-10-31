@@ -562,20 +562,22 @@ li {
   display: inline-block;
   white-space: nowrap;
   will-change: transform;
-  animation: marquee-cont 12s linear infinite;
+  animation: marquee-cont 20s linear infinite;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .now-playing-pill .marquee::after {
-  content: " 🔊 " attr(data-text);
-  padding-left: 40px; /* gap between repeats */
+  content: attr(data-text);
+  padding-left: 0px; /* zero gap for seamless loop */
 }
 
 @keyframes marquee-cont {
   0% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
