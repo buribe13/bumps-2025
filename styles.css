@@ -644,7 +644,7 @@ li {
   min-height: 76px; /* match artwork size for symmetrical padding */
 }
 
-/* Song badge notification bubbles - Medal style */
+/* Song badge notification bubbles - Apple liquid glass style */
 .song-badge {
   position: absolute;
   top: -6px;
@@ -656,125 +656,56 @@ li {
   align-items: center;
   justify-content: center;
   font-family: "Inter", system-ui, sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.75);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
   z-index: 1;
   transition: width 220ms ease, height 220ms ease, font-size 220ms ease;
   overflow: hidden;
   isolation: isolate;
 }
 
-/* Shine overlay for metallic effect */
-.song-badge::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0) 70%,
-    rgba(255, 255, 255, 0.2) 100%
-  );
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-/* Subtle rim effect for depth */
-.song-badge::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0.6;
-}
-
 .song-card.dimmed .song-badge {
   width: 22px;
   height: 22px;
   font-size: 11px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
-/* Gold Medal - Rich, warm gold with shine */
+/* Gold badge - warm golden tint */
 .song-badge-gold {
-  background: radial-gradient(
-      circle at 30% 30%,
-      rgba(255, 255, 255, 0.4) 0%,
-      transparent 50%
-    ),
-    radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.2) 0%, transparent 50%),
-    linear-gradient(135deg, #ffd700 0%, #ffed4e 30%, #ffd700 60%, #daa520 100%);
-  color: rgba(0, 0, 0, 0.8);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.song-badge-gold::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(255, 255, 255, 0.3) 25%,
-    rgba(255, 255, 255, 0) 40%,
-    rgba(255, 255, 255, 0) 60%,
-    rgba(255, 255, 255, 0.25) 100%
-  );
-}
-
-/* Silver Medal - Cool, polished silver */
-.song-badge-silver {
-  background: radial-gradient(
-      circle at 30% 30%,
-      rgba(255, 255, 255, 0.6) 0%,
-      transparent 50%
-    ),
-    radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 30%, #e8e8e8 60%, #a8a8a8 100%);
-  color: rgba(0, 0, 0, 0.7);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-.song-badge-silver::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 0.4) 25%,
-    rgba(255, 255, 255, 0) 40%,
-    rgba(255, 255, 255, 0) 60%,
-    rgba(255, 255, 255, 0.3) 100%
-  );
-}
-
-/* Bronze Medal - Warm, earthy bronze */
-.song-badge-bronze {
-  background: radial-gradient(
-      circle at 30% 30%,
-      rgba(255, 255, 255, 0.35) 0%,
-      transparent 50%
-    ),
-    radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.25) 0%, transparent 50%),
-    linear-gradient(135deg, #d4a574 0%, #cd7f32 30%, #d4a574 60%, #8b6914 100%);
+  background: rgba(255, 215, 0, 0.25);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 235, 120, 0.4);
   color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.song-badge-bronze::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.25) 25%,
-    rgba(255, 255, 255, 0) 40%,
-    rgba(255, 255, 255, 0) 60%,
-    rgba(255, 255, 255, 0.2) 100%
-  );
+/* Silver badge - cool silver tint */
+.song-badge-silver {
+  background: rgba(230, 230, 230, 0.25);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Bronze badge - warm bronze tint */
+.song-badge-bronze {
+  background: rgba(205, 127, 50, 0.25);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(222, 184, 135, 0.4);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .listen-btn {
   margin-top: 12px;
