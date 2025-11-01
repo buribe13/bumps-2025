@@ -2186,18 +2186,31 @@ async function updateJournalCard(dateISO, top3Songs) {
 
   // Show "Thinking..." state with pulsating animation
   const textEl = card.querySelector(".journal-text");
-  const thinkingStartTime = Date.now();
   if (textEl) {
     textEl.innerHTML = '<span class="thinking-text">Thinking...</span>';
     textEl.classList.add("thinking");
   }
 
+  // Ensure "Thinking..." is painted before proceeding
+  // Use double requestAnimationFrame to guarantee browser has painted
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    });
+  });
+
   try {
-    // Always generate for today (use todayISO, not dateISO)
-    const fortuneMessage = await generateJournalEntryForDay(
-      todayISO,
-      top3Songs
-    );
+    // Random delay between 3000ms and 5000ms to add variability
+    const minDelay = Math.random() * 2000 + 3000; // 3000-5000ms
+    
+    // Start both the delay timer and fortune generation in parallel
+    // This ensures we always wait the full delay time, even if cache returns instantly
+    const [fortuneMessage] = await Promise.all([
+      generateJournalEntryForDay(todayISO, top3Songs),
+      new Promise((resolve) => setTimeout(resolve, minDelay))
+    ]);
 
     // Update date to today
     const dateEl = card.querySelector(".journal-date");
@@ -2205,17 +2218,7 @@ async function updateJournalCard(dateISO, top3Songs) {
       dateEl.textContent = formatJournalDate(todayISO);
     }
 
-    // Ensure "Thinking..." shows for at least 3-5 seconds
-    // Random delay between 3000ms and 5000ms to add variability
-    const minDelay = Math.random() * 2000 + 3000; // 3000-5000ms
-    const elapsedTime = Date.now() - thinkingStartTime;
-    const remainingDelay = Math.max(0, minDelay - elapsedTime);
-    
-    if (remainingDelay > 0) {
-      await new Promise((resolve) => setTimeout(resolve, remainingDelay));
-    }
-
-    // Render fortune message after delay
+    // Render fortune message after both delay and generation complete
     if (textEl) {
       textEl.classList.remove("thinking");
       textEl.textContent = fortuneMessage;
