@@ -92,6 +92,81 @@
   }
 })();
 
+// --- Fortune Reveal Swoosh Sound Effect ---
+(function initFortuneSwooshSound() {
+  // Reuse audio context from keyboard sound if available, otherwise create new one
+  let audioContext = null;
+
+  function getAudioContext() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+    }
+    return audioContext;
+  }
+
+  // Generate a smooth, soft swoosh sound
+  window.playFortuneSwoosh = function() {
+    try {
+      const ctx = getAudioContext();
+
+      // Create a soft swoosh sound - longer duration for smooth effect
+      const duration = 0.35; // 350ms for a gentle swoosh
+      const sampleRate = ctx.sampleRate;
+      const frameCount = Math.floor(duration * sampleRate);
+      const buffer = ctx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const progress = t / duration;
+
+        // Smooth envelope: gentle attack, smooth decay
+        // Creates a soft, airy feel
+        const envelope = 
+          Math.pow(progress, 0.5) * // Gentle attack
+          Math.pow(1 - progress, 1.5); // Smooth exponential decay
+
+        // Frequency sweep: start high and sweep down (whoosh effect)
+        // Start around 800Hz, sweep down to 200Hz
+        const startFreq = 800;
+        const endFreq = 200;
+        const currentFreq = startFreq + (endFreq - startFreq) * progress;
+
+        // Generate filtered noise with frequency sweep
+        // Use multiple sine waves at different frequencies for texture
+        const noise1 = (Math.random() * 2 - 1) * 0.15;
+        const noise2 = (Math.random() * 2 - 1) * 0.1;
+        
+        // Add swept frequency component for the whoosh
+        const sweep = Math.sin(2 * Math.PI * currentFreq * t) * 0.3;
+        const sweep2 = Math.sin(2 * Math.PI * currentFreq * 0.7 * t) * 0.15;
+        
+        // Combine elements
+        const swoosh = (noise1 + noise2 + sweep + sweep2) * envelope * 0.2; // Soft volume
+
+        // Apply gentle low-pass filter effect (reduce high frequencies over time)
+        const filterAmount = Math.pow(1 - progress, 0.3);
+        const filtered = swoosh * (0.3 + 0.7 * filterAmount);
+
+        // Ensure no clipping
+        data[i] = Math.max(-0.7, Math.min(0.7, filtered));
+      }
+
+      // Play the sound
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+    } catch (error) {
+      // Silently fail if audio context creation fails
+      console.debug("Fortune swoosh sound playback failed:", error);
+    }
+  };
+})();
+
 // Mock data for design-only phase
 const MOCK_MONTHS = [
   {
@@ -2222,6 +2297,11 @@ async function updateJournalCard(dateISO, top3Songs) {
     if (textEl) {
       textEl.classList.remove("thinking");
       textEl.textContent = fortuneMessage;
+      
+      // Play soft swoosh sound to audibly signal fortune reveal
+      if (typeof window.playFortuneSwoosh === 'function') {
+        window.playFortuneSwoosh();
+      }
     }
   } catch (error) {
     console.error("Failed to update journal card:", error);
