@@ -2184,11 +2184,12 @@ async function updateJournalCard(dateISO, top3Songs) {
     day
   ).padStart(2, "0")}`;
 
-  // Show loading state with pulsing dot
+  // Show "Thinking..." state with pulsating animation
   const textEl = card.querySelector(".journal-text");
+  const thinkingStartTime = Date.now();
   if (textEl) {
-    textEl.innerHTML =
-      '<span class="pulsing-dot" style="animation-delay: 0s;"></span><span class="pulsing-dot" style="animation-delay: 0.3s;"></span><span class="pulsing-dot" style="animation-delay: 0.6s;"></span>';
+    textEl.innerHTML = '<span class="thinking-text">Thinking...</span>';
+    textEl.classList.add("thinking");
   }
 
   try {
@@ -2204,8 +2205,19 @@ async function updateJournalCard(dateISO, top3Songs) {
       dateEl.textContent = formatJournalDate(todayISO);
     }
 
-    // Render fortune message immediately
+    // Ensure "Thinking..." shows for at least 3-5 seconds
+    // Random delay between 3000ms and 5000ms to add variability
+    const minDelay = Math.random() * 2000 + 3000; // 3000-5000ms
+    const elapsedTime = Date.now() - thinkingStartTime;
+    const remainingDelay = Math.max(0, minDelay - elapsedTime);
+    
+    if (remainingDelay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, remainingDelay));
+    }
+
+    // Render fortune message after delay
     if (textEl) {
+      textEl.classList.remove("thinking");
       textEl.textContent = fortuneMessage;
     }
   } catch (error) {
@@ -2216,6 +2228,7 @@ async function updateJournalCard(dateISO, top3Songs) {
     const isApiKeyError = errorMessage.toLowerCase().includes("api key");
 
     if (textEl) {
+      textEl.classList.remove("thinking");
       if (isApiKeyError) {
         textEl.textContent = `${errorMessage}\n\nFor GitHub Pages: Ensure OPENAI_API_KEY secret is configured in repository settings.`;
       } else {

@@ -1047,6 +1047,35 @@ li {
     transform: scale(1.2);
   }
 }
+
+/* Pulsating "Thinking..." text animation */
+.journal-text.thinking {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thinking-text {
+  display: inline-block;
+  animation: thinkingPulse 1.5s ease-in-out infinite;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@keyframes thinkingPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
 .dots {
   display: flex;
   gap: 0px;
