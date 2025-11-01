@@ -934,24 +934,72 @@ li {
   height: 598px;
   border-radius: 80px;
   padding: 42px 40px;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(102, 102, 102, 0.2) 100%
-  );
+  position: relative;
   color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   backdrop-filter: blur(10px);
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+}
+
+/* Animated cloud-like gradient background */
+.journal-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+      ellipse 800px 600px at 30% 40%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 700px 500px at 70% 60%,
+      rgba(255, 255, 255, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 600px 700px at 50% 80%,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 50%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(102, 102, 102, 0.2) 100%
+    );
+  animation: cloudFloat 20s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes cloudFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(15px, -10px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-10px, 15px) rotate(-1deg);
+  }
+  75% {
+    transform: translate(10px, 10px) rotate(0.5deg);
+  }
 }
 .journal-title {
   margin: 0;
   font-family: "Inter", system-ui, sans-serif;
   font-weight: 500;
-  font-size: 32px;
-  letter-spacing: 0.02em;
+  font-size: 27px;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 1;
 }
 .journal-date {
   font-family: "Ac437 IBM DOS ISO9", system-ui, sans-serif;
@@ -959,6 +1007,8 @@ li {
   letter-spacing: 0.16em;
   -webkit-text-stroke: 1px #ffffff;
   text-stroke: 1px #ffffff;
+  position: relative;
+  z-index: 1;
 }
 .journal-text {
   font-family: "Inter", system-ui, sans-serif;
@@ -969,8 +1019,10 @@ li {
   margin: 0;
   max-height: 400px;
   overflow-y: auto;
-  text-align: left;
+  text-align: center;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 .dots {
   display: flex;
@@ -1055,6 +1107,234 @@ button {
 .now-playing-pill,
 .day-card {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* --- Settings Overlay ------------------------------------------------ */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.settings-overlay[hidden] {
+  display: none !important;
+}
+
+.settings-card {
+  width: min(400px, 90vw);
+  max-height: 90vh;
+  border-radius: 80px;
+  padding: 42px 40px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(102, 102, 102, 0.2) 100%
+  );
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  backdrop-filter: blur(10px);
+  gap: 24px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.settings-title {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+}
+
+.settings-close {
+  background: rgba(0, 0, 0, 0.1);
+  border: 0.25px solid rgba(0, 0, 0, 0.1);
+  color: #fff;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 240ms ease;
+  width: 40px;
+  height: 40px;
+}
+
+.settings-close:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.settings-close svg {
+  display: block;
+  transition: opacity 240ms ease;
+}
+
+.settings-close:hover svg {
+  opacity: 0.85;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.settings-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.settings-description {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.settings-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.settings-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #fff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  outline: none;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.settings-input:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.settings-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.settings-toggle-btn {
+  background: rgba(0, 0, 0, 0.2);
+  border: 0.25px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 200ms ease, color 200ms ease;
+  flex-shrink: 0;
+}
+
+.settings-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.settings-status {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  min-height: 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-status.success {
+  color: rgba(144, 238, 144, 0.9);
+}
+
+.settings-status.error {
+  color: rgba(255, 182, 193, 0.9);
+}
+
+.settings-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #fff;
+  border: 0.25px solid rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background-color 240ms ease;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  width: 100%;
+}
+
+.settings-save-btn:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.settings-save-btn:hover .arrow {
+  opacity: 0.85;
+}
+
+.settings-save-btn .arrow {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background: #000;
+  border-radius: 50%;
+  padding: 4px;
+  transition: opacity 240ms ease;
+}
+
+.settings-link {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 200ms ease;
+  text-align: center;
+}
+
+.settings-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: underline;
 }
 
 /* --- Gradient Customizer Overlay ------------------------------------------------ */
