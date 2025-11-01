@@ -9,7 +9,7 @@
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
     // Resume if suspended (required after user interaction)
-    if (audioContext.state === 'suspended') {
+    if (audioContext.state === "suspended") {
       audioContext.resume();
     }
     return audioContext;
@@ -19,7 +19,7 @@
   function playKeyboardClick() {
     try {
       const ctx = getAudioContext();
-      
+
       // Create a soft kick-drum-like thump sound
       const duration = 0.08; // Slightly longer for kick drum feel (80ms)
       const sampleRate = ctx.sampleRate;
@@ -31,27 +31,27 @@
       for (let i = 0; i < frameCount; i++) {
         const t = i / sampleRate;
         const progress = t / duration;
-        
+
         // Kick drum envelope: fast attack, exponential decay
         // Using a smoother curve that starts strong and decays quickly
         const envelope = Math.exp(-progress * 15) * (1 - progress * 0.2);
-        
+
         // Low frequency thump (kick drum range: 60-100Hz)
         const kickFreq = 80; // Base kick frequency
-        
+
         // Pitch sweep: start higher and drop quickly (characteristic of kick drums)
         const pitchDrop = Math.exp(-progress * 8); // Exponential pitch drop
-        const currentFreq = kickFreq + (kickFreq * 2 * pitchDrop);
-        
+        const currentFreq = kickFreq + kickFreq * 2 * pitchDrop;
+
         // Main kick thump with sub-bass
-        const kick = 
-          Math.sin(2 * Math.PI * currentFreq * t) * 0.25 +  // Main kick
+        const kick =
+          Math.sin(2 * Math.PI * currentFreq * t) * 0.25 + // Main kick
           Math.sin(2 * Math.PI * currentFreq * 0.5 * t) * 0.15 + // Sub-bass
           Math.sin(2 * Math.PI * currentFreq * 1.5 * t) * 0.08; // Harmonic
-        
+
         // Subtle noise for texture (very minimal)
         const noise = (Math.random() * 2 - 1) * 0.02 * (1 - progress);
-        
+
         // Apply envelope and ensure no clipping (keep under 0.8)
         const output = (kick + noise) * envelope * 0.25; // Lower volume to prevent clipping
         data[i] = Math.max(-0.8, Math.min(0.8, output)); // Hard limit to prevent clipping
@@ -64,25 +64,29 @@
       source.start(0);
     } catch (error) {
       // Silently fail if audio context creation fails (e.g., in some browsers)
-      console.debug('Keyboard sound playback failed:', error);
+      console.debug("Keyboard sound playback failed:", error);
     }
   }
 
   // Attach click sound to all buttons
   function attachKeyboardSound() {
     // Use event delegation to catch all button clicks, including dynamically created ones
-    document.addEventListener('click', function(e) {
-      // Check if the clicked element or its parent is a button
-      const button = e.target.closest('button');
-      if (button && !button.disabled) {
-        playKeyboardClick();
-      }
-    }, true); // Use capture phase to catch events early
+    document.addEventListener(
+      "click",
+      function (e) {
+        // Check if the clicked element or its parent is a button
+        const button = e.target.closest("button");
+        if (button && !button.disabled) {
+          playKeyboardClick();
+        }
+      },
+      true
+    ); // Use capture phase to catch events early
   }
 
   // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', attachKeyboardSound);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attachKeyboardSound);
   } else {
     attachKeyboardSound();
   }
@@ -1358,19 +1362,21 @@ async function updateLeftStackFromSpotify(token) {
     const recent = await fetchRecentlyPlayed(token, 50);
     console.log("Fetched recently played:", recent);
     console.log(`📊 Total items fetched: ${recent.items?.length || 0}`);
-    
+
     // Log a summary of all artists in the fetched tracks
     if (recent.items && recent.items.length > 0) {
       const artistCounts = {};
-      recent.items.forEach(item => {
+      recent.items.forEach((item) => {
         const artist = item.track?.artists?.[0]?.name || "Unknown";
         artistCounts[artist] = (artistCounts[artist] || 0) + 1;
       });
-      console.log("🎵 Artists in fetched tracks:", Object.entries(artistCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([artist, count]) => `${artist} (${count})`)
-        .join(", ")
+      console.log(
+        "🎵 Artists in fetched tracks:",
+        Object.entries(artistCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([artist, count]) => `${artist} (${count})`)
+          .join(", ")
       );
     }
 
@@ -1408,14 +1414,24 @@ async function updateLeftStackFromSpotify(token) {
       // Handle variations: "Money Don't Matter 2 Night", "Money don't matter tonight", etc.
       const princeTracks = recent.items.filter((item) => {
         const trackName = item.track?.name?.toLowerCase() || "";
-        const artistName = item.track?.artists?.map(a => a?.name?.toLowerCase() || "").join(" ") || "";
+        const artistName =
+          item.track?.artists
+            ?.map((a) => a?.name?.toLowerCase() || "")
+            .join(" ") || "";
         const hasMoney = trackName.includes("money");
-        const hasMatter = trackName.includes("matter") || trackName.includes("2 night") || trackName.includes("tonight");
+        const hasMatter =
+          trackName.includes("matter") ||
+          trackName.includes("2 night") ||
+          trackName.includes("tonight");
         const isPrince = artistName.includes("prince");
-        
+
         return (
           (hasMoney && hasMatter) ||
-          (isPrince && hasMoney && (hasMatter || trackName.includes("don't") || trackName.includes("dont")))
+          (isPrince &&
+            hasMoney &&
+            (hasMatter ||
+              trackName.includes("don't") ||
+              trackName.includes("dont")))
         );
       });
 
@@ -1424,7 +1440,7 @@ async function updateLeftStackFromSpotify(token) {
           "🎯 Found 'Money don't matter tonight' by Prince:",
           princeTracks.map((item) => ({
             name: item.track?.name,
-            artist: item.track?.artists?.map(a => a.name).join(", "),
+            artist: item.track?.artists?.map((a) => a.name).join(", "),
             played_at: item.played_at,
             position: recent.items.indexOf(item) + 1,
             timestamp: new Date(item.played_at).toLocaleString(),
@@ -1435,31 +1451,43 @@ async function updateLeftStackFromSpotify(token) {
           "⚠️ 'Money don't matter tonight' by Prince NOT found in the fetched tracks"
         );
         console.log("💡 Searching all tracks for Prince...");
-        
+
         // Search for any Prince tracks
         const allPrinceTracks = recent.items.filter((item) => {
-          const artistName = item.track?.artists?.map(a => a?.name?.toLowerCase() || "").join(" ") || "";
+          const artistName =
+            item.track?.artists
+              ?.map((a) => a?.name?.toLowerCase() || "")
+              .join(" ") || "";
           return artistName.includes("prince");
         });
-        
+
         if (allPrinceTracks.length > 0) {
-          console.log(`   Found ${allPrinceTracks.length} Prince track(s) in recently played:`, 
-            allPrinceTracks.map(item => ({
+          console.log(
+            `   Found ${allPrinceTracks.length} Prince track(s) in recently played:`,
+            allPrinceTracks.map((item) => ({
               name: item.track?.name,
               played_at: new Date(item.played_at).toLocaleString(),
-              position: recent.items.indexOf(item) + 1
+              position: recent.items.indexOf(item) + 1,
             }))
           );
         } else {
           console.log("   No Prince tracks found in the fetched data");
         }
-        
+
         console.log("💡 Possible reasons the track isn't showing:");
-        console.log("   - Song was played more than 7 days ago (Spotify only returns last 7 days)");
+        console.log(
+          "   - Song was played more than 7 days ago (Spotify only returns last 7 days)"
+        );
         console.log("   - Song was played on a different Spotify account");
-        console.log("   - Spotify hasn't synced the play yet (can take a few minutes)");
-        console.log("   - Song was played on a device that isn't connected to your account");
-        console.log(`   - Track might be beyond position ${recent.items.length} in your history`);
+        console.log(
+          "   - Spotify hasn't synced the play yet (can take a few minutes)"
+        );
+        console.log(
+          "   - Song was played on a device that isn't connected to your account"
+        );
+        console.log(
+          `   - Track might be beyond position ${recent.items.length} in your history`
+        );
       }
 
       // Check specifically for Lauryn Hill
@@ -1492,25 +1520,35 @@ async function updateLeftStackFromSpotify(token) {
       "🎵 Top 3 tracks being displayed:",
       top3.map((t) => `${t.name} by ${t.artists}`)
     );
-    
+
     // Check if Prince track made it into top 3 (only if we have items)
     if (recent.items && recent.items.length > 0) {
       // Search for Prince track again to check position
       const princeTracksForCheck = recent.items.filter((item) => {
         const trackName = item.track?.name?.toLowerCase() || "";
-        const artistName = item.track?.artists?.map(a => a?.name?.toLowerCase() || "").join(" ") || "";
+        const artistName =
+          item.track?.artists
+            ?.map((a) => a?.name?.toLowerCase() || "")
+            .join(" ") || "";
         const hasMoney = trackName.includes("money");
-        const hasMatter = trackName.includes("matter") || trackName.includes("2 night") || trackName.includes("tonight");
+        const hasMatter =
+          trackName.includes("matter") ||
+          trackName.includes("2 night") ||
+          trackName.includes("tonight");
         const isPrince = artistName.includes("prince");
-        
+
         return (
           (hasMoney && hasMatter) ||
-          (isPrince && hasMoney && (hasMatter || trackName.includes("don't") || trackName.includes("dont")))
+          (isPrince &&
+            hasMoney &&
+            (hasMatter ||
+              trackName.includes("don't") ||
+              trackName.includes("dont")))
         );
       });
-      
+
       if (princeTracksForCheck.length > 0) {
-        const princeInTop3 = top3.some(track => {
+        const princeInTop3 = top3.some((track) => {
           const trackName = track.name.toLowerCase();
           const artistName = track.artists.toLowerCase();
           return (
@@ -1518,12 +1556,12 @@ async function updateLeftStackFromSpotify(token) {
             (artistName.includes("prince") && trackName.includes("money"))
           );
         });
-        
+
         if (!princeInTop3) {
           const position = recent.items.indexOf(princeTracksForCheck[0]) + 1;
           console.warn(
             `⚠️ Prince track was found in recently played (position ${position}) but didn't make it into the top 3 unique tracks. ` +
-            `This can happen if: 1) You played 3 other unique songs more recently, 2) The track was a duplicate of one already in your top 3, or 3) The track didn't have proper metadata.`
+              `This can happen if: 1) You played 3 other unique songs more recently, 2) The track was a duplicate of one already in your top 3, or 3) The track didn't have proper metadata.`
           );
         }
       }
@@ -1614,7 +1652,7 @@ function startSpotifyRefresh() {
       await updateLeftStackFromSpotify(token);
     } catch (error) {
       console.error("Failed to refresh Spotify data:", error);
-      
+
       // If token expired, try to refresh it
       if (error.status === 401) {
         const refreshToken = localStorage.getItem("spotify_refresh_token");
@@ -1627,14 +1665,16 @@ function startSpotifyRefresh() {
             );
             const newAccess = refreshed.access_token;
             const newRefresh = refreshed.refresh_token || refreshToken;
-            
+
             if (newAccess) {
               localStorage.setItem("spotify_access_token", newAccess);
               if (newRefresh) {
                 localStorage.setItem("spotify_refresh_token", newRefresh);
               }
-              console.log("✅ Token refreshed successfully, retrying update...");
-              
+              console.log(
+                "✅ Token refreshed successfully, retrying update..."
+              );
+
               // Retry the update with the new token
               await updateLeftStackFromSpotify(newAccess);
             } else {
@@ -1651,7 +1691,9 @@ function startSpotifyRefresh() {
           }
         } else {
           // No refresh token available, user needs to reconnect
-          console.error("❌ No refresh token available, user needs to reconnect");
+          console.error(
+            "❌ No refresh token available, user needs to reconnect"
+          );
           clearInterval(spotifyRefreshInterval);
           spotifyRefreshInterval = null;
           setAuthUIConnected(false);
@@ -1774,38 +1816,42 @@ async function fetchLyrics(songTitle, artistName) {
   }
 }
 
+// --- Helper function to get OpenAI API key from config.js ---
+function getOpenAIApiKey() {
+  // The API key is injected by GitHub Actions from Secrets during deployment
+  // For local development, it comes from config.js (gitignored)
+  // For GitHub Pages, it comes from the config.js created during deployment
+
+  let apiKey = null;
+
+  // Check window.OPENAI_API_KEY (from config.js)
+  if (typeof window !== "undefined" && window.OPENAI_API_KEY) {
+    apiKey = window.OPENAI_API_KEY;
+  } else if (OPENAI_API_KEY) {
+    // Fallback to constant (from config.js loaded before app.js)
+    apiKey = OPENAI_API_KEY;
+  }
+
+  return apiKey && apiKey !== "YOUR_OPENAI_API_KEY_HERE" ? apiKey : null;
+}
+
 // --- OpenAI API Integration ---
 async function generateJournalEntry(songLyrics) {
-  // Use the shared API key - check both window.OPENAI_API_KEY (from config.js) and fallback
-  const apiKey =
-    typeof window !== "undefined" && window.OPENAI_API_KEY
-      ? window.OPENAI_API_KEY
-      : OPENAI_API_KEY;
+  // Use the helper function to get API key from all sources
+  const apiKey = getOpenAIApiKey();
 
   // Log key status for debugging (without exposing the key)
   const keyStatus = {
     windowKey: typeof window !== "undefined" ? !!window.OPENAI_API_KEY : false,
     constantKey: !!OPENAI_API_KEY,
     apiKeyExists: !!apiKey,
-    apiKeyLength: apiKey ? apiKey.length : 0,
     keyPrefix: apiKey ? apiKey.substring(0, 7) + "..." : "none",
   };
   console.log("🔑 OpenAI API Key check:", keyStatus);
 
-  // On GitHub Pages, config.js might not be loaded if it's gitignored
-  if (
-    !apiKey &&
-    typeof window !== "undefined" &&
-    window.location.hostname.includes("github.io")
-  ) {
-    console.warn(
-      "⚠️ Running on GitHub Pages - config.js might not be deployed (it's gitignored). You may need to manually upload config.js or include it in the repo."
-    );
-  }
-
   if (!apiKey || apiKey === "YOUR_OPENAI_API_KEY_HERE") {
     console.error(
-      "❌ OpenAI API key not configured. Check if config.js is loaded and contains window.OPENAI_API_KEY"
+      "❌ OpenAI API key not configured. On GitHub Pages, ensure the OPENAI_API_KEY secret is set in repository settings."
     );
     return null;
   }
@@ -2141,7 +2187,8 @@ async function updateJournalCard(dateISO, top3Songs) {
   // Show loading state with pulsing dot
   const textEl = card.querySelector(".journal-text");
   if (textEl) {
-    textEl.innerHTML = '<span class="pulsing-dot" style="animation-delay: 0s;"></span><span class="pulsing-dot" style="animation-delay: 0.3s;"></span><span class="pulsing-dot" style="animation-delay: 0.6s;"></span>';
+    textEl.innerHTML =
+      '<span class="pulsing-dot" style="animation-delay: 0s;"></span><span class="pulsing-dot" style="animation-delay: 0.3s;"></span><span class="pulsing-dot" style="animation-delay: 0.6s;"></span>';
   }
 
   try {
@@ -2161,7 +2208,6 @@ async function updateJournalCard(dateISO, top3Songs) {
     if (textEl) {
       textEl.textContent = fortuneMessage;
     }
-
   } catch (error) {
     console.error("Failed to update journal card:", error);
 
@@ -2171,7 +2217,7 @@ async function updateJournalCard(dateISO, top3Songs) {
 
     if (textEl) {
       if (isApiKeyError) {
-        textEl.textContent = `${errorMessage}\n\nTo fix: Copy config.example.js to config.js and add your API key.`;
+        textEl.textContent = `${errorMessage}\n\nFor GitHub Pages: Ensure OPENAI_API_KEY secret is configured in repository settings.`;
       } else {
         textEl.textContent = `${errorMessage}\n\nCheck the browser console for more details.`;
       }
@@ -2230,13 +2276,23 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!card) return;
 
   // Check if OpenAI API key is configured
-  if (!OPENAI_API_KEY || OPENAI_API_KEY === "YOUR_OPENAI_API_KEY_HERE") {
+  // Check if API key is configured (from any source)
+  const apiKey = getOpenAIApiKey();
+  if (!apiKey) {
     console.warn(
       "%c⚠️ OpenAI API Key Not Configured",
       "color: #f59e0b; font-size: 16px; font-weight: bold;"
     );
     console.log(
-      "%cTo enable fortune cookie generation, copy config.example.js to config.js and add your API key",
+      "%cTo enable fortune cookie generation:",
+      "color: #333; font-size: 14px; font-weight: bold;"
+    );
+    console.log(
+      "%c• On GitHub Pages: Add OPENAI_API_KEY as a repository secret in Settings → Secrets → Actions",
+      "color: #333; font-size: 14px;"
+    );
+    console.log(
+      "%c• Locally: Copy config.example.js to config.js and add your API key",
       "color: #333; font-size: 14px;"
     );
   } else {
@@ -2645,7 +2701,7 @@ async function initializeJournalCard(token) {
       await updateLeftStackFromSpotify(token);
     } catch (error) {
       console.error("Failed to refresh songs:", error);
-      
+
       // If token expired, try to refresh it
       if (error.status === 401) {
         const refreshToken = localStorage.getItem("spotify_refresh_token");
@@ -2658,14 +2714,16 @@ async function initializeJournalCard(token) {
             );
             const newAccess = refreshed.access_token;
             const newRefresh = refreshed.refresh_token || refreshToken;
-            
+
             if (newAccess) {
               localStorage.setItem("spotify_access_token", newAccess);
               if (newRefresh) {
                 localStorage.setItem("spotify_refresh_token", newRefresh);
               }
-              console.log("✅ Token refreshed successfully, retrying update...");
-              
+              console.log(
+                "✅ Token refreshed successfully, retrying update..."
+              );
+
               // Retry the update with the new token
               await updateLeftStackFromSpotify(newAccess);
             } else {
@@ -2680,7 +2738,9 @@ async function initializeJournalCard(token) {
           }
         } else {
           // No refresh token available, user needs to reconnect
-          console.error("❌ No refresh token available, user needs to reconnect");
+          console.error(
+            "❌ No refresh token available, user needs to reconnect"
+          );
           localStorage.removeItem("spotify_access_token");
           localStorage.removeItem("spotify_refresh_token");
           setAuthUIConnected(false);
