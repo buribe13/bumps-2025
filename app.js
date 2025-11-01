@@ -1,3 +1,93 @@
+// --- Keyboard ASMR Sound Effect ---
+(function initKeyboardSound() {
+  // Create audio context (will be initialized on first user interaction)
+  let audioContext = null;
+
+  // Initialize audio context on first interaction (required by browser autoplay policies)
+  function getAudioContext() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Resume if suspended (required after user interaction)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    return audioContext;
+  }
+
+  // Generate a soft, kick-drum-like click sound
+  function playKeyboardClick() {
+    try {
+      const ctx = getAudioContext();
+      
+      // Create a soft kick-drum-like thump sound
+      const duration = 0.08; // Slightly longer for kick drum feel (80ms)
+      const sampleRate = ctx.sampleRate;
+      const frameCount = Math.floor(duration * sampleRate);
+      const buffer = ctx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      // Generate a kick drum sound with low frequencies
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const progress = t / duration;
+        
+        // Kick drum envelope: fast attack, exponential decay
+        // Using a smoother curve that starts strong and decays quickly
+        const envelope = Math.exp(-progress * 15) * (1 - progress * 0.2);
+        
+        // Low frequency thump (kick drum range: 60-100Hz)
+        const kickFreq = 80; // Base kick frequency
+        
+        // Pitch sweep: start higher and drop quickly (characteristic of kick drums)
+        const pitchDrop = Math.exp(-progress * 8); // Exponential pitch drop
+        const currentFreq = kickFreq + (kickFreq * 2 * pitchDrop);
+        
+        // Main kick thump with sub-bass
+        const kick = 
+          Math.sin(2 * Math.PI * currentFreq * t) * 0.25 +  // Main kick
+          Math.sin(2 * Math.PI * currentFreq * 0.5 * t) * 0.15 + // Sub-bass
+          Math.sin(2 * Math.PI * currentFreq * 1.5 * t) * 0.08; // Harmonic
+        
+        // Subtle noise for texture (very minimal)
+        const noise = (Math.random() * 2 - 1) * 0.02 * (1 - progress);
+        
+        // Apply envelope and ensure no clipping (keep under 0.8)
+        const output = (kick + noise) * envelope * 0.25; // Lower volume to prevent clipping
+        data[i] = Math.max(-0.8, Math.min(0.8, output)); // Hard limit to prevent clipping
+      }
+
+      // Play the sound
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+    } catch (error) {
+      // Silently fail if audio context creation fails (e.g., in some browsers)
+      console.debug('Keyboard sound playback failed:', error);
+    }
+  }
+
+  // Attach click sound to all buttons
+  function attachKeyboardSound() {
+    // Use event delegation to catch all button clicks, including dynamically created ones
+    document.addEventListener('click', function(e) {
+      // Check if the clicked element or its parent is a button
+      const button = e.target.closest('button');
+      if (button && !button.disabled) {
+        playKeyboardClick();
+      }
+    }, true); // Use capture phase to catch events early
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachKeyboardSound);
+  } else {
+    attachKeyboardSound();
+  }
+})();
+
 // Mock data for design-only phase
 const MOCK_MONTHS = [
   {
@@ -1902,10 +1992,10 @@ async function updateJournalCard(dateISO, top3Songs) {
     day
   ).padStart(2, "0")}`;
 
-  // Show loading state
+  // Show loading state with pulsing dot
   const textEl = card.querySelector(".journal-text");
   if (textEl) {
-    textEl.textContent = "Generating fortune...";
+    textEl.innerHTML = '<span class="pulsing-dot" style="animation-delay: 0s;"></span><span class="pulsing-dot" style="animation-delay: 0.3s;"></span><span class="pulsing-dot" style="animation-delay: 0.6s;"></span>';
   }
 
   try {
@@ -1921,16 +2011,11 @@ async function updateJournalCard(dateISO, top3Songs) {
       dateEl.textContent = formatJournalDate(todayISO);
     }
 
-    // Render fortune message
+    // Render fortune message immediately
     if (textEl) {
       textEl.textContent = fortuneMessage;
     }
 
-    // Hide dots and pager buttons since we only have one message
-    const dotsEl = card.querySelector(".dots");
-    const pagerEl = card.querySelector(".pager");
-    if (dotsEl) dotsEl.style.display = "none";
-    if (pagerEl) pagerEl.style.display = "none";
   } catch (error) {
     console.error("Failed to update journal card:", error);
 
@@ -1945,12 +2030,6 @@ async function updateJournalCard(dateISO, top3Songs) {
         textEl.textContent = `${errorMessage}\n\nCheck the browser console for more details.`;
       }
     }
-
-    // Hide dots and pager buttons on error too
-    const dotsEl = card.querySelector(".dots");
-    const pagerEl = card.querySelector(".pager");
-    if (dotsEl) dotsEl.style.display = "none";
-    if (pagerEl) pagerEl.style.display = "none";
   }
 }
 
@@ -2357,53 +2436,118 @@ async function initializeJournalCard(token) {
 
 // --- Screenshot Functionality ---
 (function initScreenshot() {
-  const screenshotBtn = document.getElementById("screenshotButton");
-  if (!screenshotBtn || typeof html2canvas === "undefined") return;
+  // Wait for DOM and html2canvas to be ready
+  function setupScreenshot() {
+    const screenshotBtn = document.getElementById("screenshotButton");
+    
+    // Check if html2canvas is loaded
+    if (typeof html2canvas === "undefined") {
+      // Retry after a short delay if html2canvas isn't loaded yet
+      setTimeout(setupScreenshot, 100);
+      return;
+    }
+    
+    if (!screenshotBtn) {
+      // Button not found, retry
+      setTimeout(setupScreenshot, 100);
+      return;
+    }
 
-  screenshotBtn.addEventListener("click", async () => {
+    screenshotBtn.addEventListener("click", async () => {
+      try {
+        // Hide FAB buttons during screenshot
+        const fabContainer = document.querySelector(".fab-container");
+        if (fabContainer) {
+          fabContainer.style.display = "none";
+        }
+
+        // Capture the frame-root element
+        const frameRoot = document.querySelector(".frame-root");
+        if (!frameRoot) {
+          console.error("Screenshot failed: frame-root element not found");
+          if (fabContainer) fabContainer.style.display = "flex";
+          return;
+        }
+
+        // Take screenshot
+        const canvas = await html2canvas(frameRoot, {
+          backgroundColor: null,
+          scale: 2, // Higher quality
+          useCORS: true,
+          logging: false,
+        });
+
+        // Show FAB buttons again
+        if (fabContainer) {
+          fabContainer.style.display = "flex";
+        }
+
+        // Convert to blob and download
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            console.error("Screenshot failed: could not create blob");
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.download = `bumps-screenshot-${Date.now()}.png`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+        }, "image/png");
+      } catch (error) {
+        console.error("Screenshot failed:", error);
+        // Make sure to show buttons even if there's an error
+        const fabContainer = document.querySelector(".fab-container");
+        if (fabContainer) {
+          fabContainer.style.display = "flex";
+        }
+      }
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupScreenshot);
+  } else {
+    setupScreenshot();
+  }
+})();
+
+// --- Refresh Functionality ---
+(function initRefresh() {
+  const refreshBtn = document.getElementById("refreshButton");
+  if (!refreshBtn) return;
+
+  refreshBtn.addEventListener("click", async () => {
+    // Check if user is connected to Spotify
+    const token = localStorage.getItem("spotify_access_token");
+    if (!token) {
+      // User not connected, show a brief message or do nothing
+      console.log("Cannot refresh: Not connected to Spotify");
+      return;
+    }
+
+    // Disable button and show loading state
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add("refreshing");
+
     try {
-      // Hide FAB buttons during screenshot
-      const fabContainer = document.querySelector(".fab-container");
-      if (fabContainer) {
-        fabContainer.style.display = "none";
-      }
-
-      // Capture the frame-root element
-      const frameRoot = document.querySelector(".frame-root");
-      if (!frameRoot) {
-        if (fabContainer) fabContainer.style.display = "flex";
-        return;
-      }
-
-      // Take screenshot
-      const canvas = await html2canvas(frameRoot, {
-        backgroundColor: null,
-        scale: 2, // Higher quality
-        useCORS: true,
-        logging: false,
-      });
-
-      // Show FAB buttons again
-      if (fabContainer) {
-        fabContainer.style.display = "flex";
-      }
-
-      // Convert to blob and download
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = `bumps-screenshot-${Date.now()}.png`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-      }, "image/png");
+      console.log("🔄 Manual refresh triggered by user");
+      await updateLeftStackFromSpotify(token);
     } catch (error) {
-      console.error("Screenshot failed:", error);
-      // Make sure to show buttons even if there's an error
-      const fabContainer = document.querySelector(".fab-container");
-      if (fabContainer) {
-        fabContainer.style.display = "flex";
+      console.error("Failed to refresh songs:", error);
+      
+      // If token expired, clear auth state
+      if (error.status === 401) {
+        localStorage.removeItem("spotify_access_token");
+        localStorage.removeItem("spotify_refresh_token");
+        setAuthUIConnected(false);
       }
+    } finally {
+      // Re-enable button and remove loading state
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove("refreshing");
     }
   });
 })();

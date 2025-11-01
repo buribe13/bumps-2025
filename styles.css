@@ -1024,6 +1024,29 @@ li {
   position: relative;
   z-index: 1;
 }
+
+/* Pulsing dot animation for fortune generation */
+.pulsing-dot {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #fff;
+  margin: 0 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
 .dots {
   display: flex;
   gap: 0px;
@@ -1462,6 +1485,24 @@ button {
 
 .fab-btn[hidden] {
   display: none !important;
+}
+
+.fab-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fab-btn.refreshing svg {
+  animation: rotate 1s linear infinite;
 }
 
 .customizer-controls {
