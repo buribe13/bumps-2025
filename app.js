@@ -2290,6 +2290,48 @@ async function initializeJournalCard(token) {
   }
 }
 
+// --- Info Overlay ---
+(function initInfoOverlay() {
+  const overlay = document.querySelector(".info-overlay");
+  const openBtn = document.getElementById("openInfo");
+  const closeBtn = document.getElementById("closeInfo");
+
+  if (!overlay) return;
+
+  // Open/close overlay
+  function openOverlay() {
+    overlay.removeAttribute("hidden");
+    document.body.classList.add("no-scroll");
+  }
+
+  function closeOverlay() {
+    overlay.setAttribute("hidden", "");
+    document.body.classList.remove("no-scroll");
+  }
+
+  if (openBtn) {
+    openBtn.addEventListener("click", openOverlay);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeOverlay);
+  }
+
+  // Close when clicking backdrop
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      closeOverlay();
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) {
+      closeOverlay();
+    }
+  });
+})();
+
 // --- Gradient Customizer ---
 (function initGradientCustomizer() {
   const frameRoot = document.querySelector(".frame-root");

@@ -1360,6 +1360,136 @@ button {
   text-decoration: underline;
 }
 
+/* --- Info Overlay ------------------------------------------------ */
+.info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.info-overlay[hidden] {
+  display: none !important;
+}
+
+.info-card {
+  width: min(400px, 90vw);
+  max-height: 90vh;
+  border-radius: 80px;
+  padding: 42px 40px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(102, 102, 102, 0.2) 100%
+  );
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  backdrop-filter: blur(10px);
+  gap: 24px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.info-title {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+}
+
+.info-close {
+  background: rgba(0, 0, 0, 0.1);
+  border: 0.25px solid rgba(0, 0, 0, 0.1);
+  color: #fff;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 240ms ease;
+  width: 40px;
+  height: 40px;
+}
+
+.info-close:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.info-close svg {
+  display: block;
+  transition: opacity 240ms ease;
+}
+
+.info-close:hover svg {
+  opacity: 0.85;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.info-description {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-subtitle {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+}
+
+.info-list {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  padding-left: 20px;
+}
+
+.info-list li {
+  margin-bottom: 8px;
+}
+
+.info-list li:last-child {
+  margin-bottom: 0;
+}
+
 /* --- Gradient Customizer Overlay ------------------------------------------------ */
 .gradient-customizer-overlay {
   position: fixed;
