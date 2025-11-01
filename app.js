@@ -1353,9 +1353,26 @@ async function initSpotify() {
 
 async function updateLeftStackFromSpotify(token) {
   try {
+    // Fetch more tracks to ensure we catch all recent plays (up to 50 per API call, but we'll paginate)
+    // Spotify API max is 50 per request, but we can paginate to get more
     const recent = await fetchRecentlyPlayed(token, 50);
     console.log("Fetched recently played:", recent);
-    console.log("Total items fetched:", recent.items?.length || 0);
+    console.log(`📊 Total items fetched: ${recent.items?.length || 0}`);
+    
+    // Log a summary of all artists in the fetched tracks
+    if (recent.items && recent.items.length > 0) {
+      const artistCounts = {};
+      recent.items.forEach(item => {
+        const artist = item.track?.artists?.[0]?.name || "Unknown";
+        artistCounts[artist] = (artistCounts[artist] || 0) + 1;
+      });
+      console.log("🎵 Artists in fetched tracks:", Object.entries(artistCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([artist, count]) => `${artist} (${count})`)
+        .join(", ")
+      );
+    }
 
     // If we have very few tracks, warn the user
     if (recent.items && recent.items.length < 3) {
@@ -1387,6 +1404,64 @@ async function updateLeftStackFromSpotify(token) {
         );
       });
 
+      // Check specifically for Prince - Money don't matter tonight
+      // Handle variations: "Money Don't Matter 2 Night", "Money don't matter tonight", etc.
+      const princeTracks = recent.items.filter((item) => {
+        const trackName = item.track?.name?.toLowerCase() || "";
+        const artistName = item.track?.artists?.map(a => a?.name?.toLowerCase() || "").join(" ") || "";
+        const hasMoney = trackName.includes("money");
+        const hasMatter = trackName.includes("matter") || trackName.includes("2 night") || trackName.includes("tonight");
+        const isPrince = artistName.includes("prince");
+        
+        return (
+          (hasMoney && hasMatter) ||
+          (isPrince && hasMoney && (hasMatter || trackName.includes("don't") || trackName.includes("dont")))
+        );
+      });
+
+      if (princeTracks.length > 0) {
+        console.log(
+          "🎯 Found 'Money don't matter tonight' by Prince:",
+          princeTracks.map((item) => ({
+            name: item.track?.name,
+            artist: item.track?.artists?.map(a => a.name).join(", "),
+            played_at: item.played_at,
+            position: recent.items.indexOf(item) + 1,
+            timestamp: new Date(item.played_at).toLocaleString(),
+          }))
+        );
+      } else {
+        console.warn(
+          "⚠️ 'Money don't matter tonight' by Prince NOT found in the fetched tracks"
+        );
+        console.log("💡 Searching all tracks for Prince...");
+        
+        // Search for any Prince tracks
+        const allPrinceTracks = recent.items.filter((item) => {
+          const artistName = item.track?.artists?.map(a => a?.name?.toLowerCase() || "").join(" ") || "";
+          return artistName.includes("prince");
+        });
+        
+        if (allPrinceTracks.length > 0) {
+          console.log(`   Found ${allPrinceTracks.length} Prince track(s) in recently played:`, 
+            allPrinceTracks.map(item => ({
+              name: item.track?.name,
+              played_at: new Date(item.played_at).toLocaleString(),
+              position: recent.items.indexOf(item) + 1
+            }))
+          );
+        } else {
+          console.log("   No Prince tracks found in the fetched data");
+        }
+        
+        console.log("💡 Possible reasons the track isn't showing:");
+        console.log("   - Song was played more than 7 days ago (Spotify only returns last 7 days)");
+        console.log("   - Song was played on a different Spotify account");
+        console.log("   - Spotify hasn't synced the play yet (can take a few minutes)");
+        console.log("   - Song was played on a device that isn't connected to your account");
+        console.log(`   - Track might be beyond position ${recent.items.length} in your history`);
+      }
+
       // Check specifically for Lauryn Hill
       const laurynHillTracks = recent.items.filter((item) => {
         const trackName = item.track?.name?.toLowerCase() || "";
@@ -1407,19 +1482,6 @@ async function updateLeftStackFromSpotify(token) {
             position: recent.items.indexOf(item) + 1,
           }))
         );
-      } else {
-        console.warn(
-          "⚠️ 'Nothing Even Matters' by Lauryn Hill NOT found in Spotify's recently played list"
-        );
-        console.log("💡 Possible reasons:");
-        console.log("   - Song was played more than 7 days ago");
-        console.log("   - Song was played on a different Spotify account");
-        console.log(
-          "   - Spotify hasn't synced the play yet (can take a few minutes)"
-        );
-        console.log(
-          "   - Song was played on a device that isn't connected to your account"
-        );
       }
     }
 
@@ -1427,9 +1489,45 @@ async function updateLeftStackFromSpotify(token) {
     const top3 = getMostRecentUniqueTracks(recent, 3);
     console.log("Most recent 3 tracks:", top3);
     console.log(
-      "Tracks:",
+      "🎵 Top 3 tracks being displayed:",
       top3.map((t) => `${t.name} by ${t.artists}`)
     );
+    
+    // Check if Prince track made it into top 3 (only if we have items)
+    if (recent.items && recent.items.length > 0) {
+      // Search for Prince track again to check position
+      const princeTracksForCheck = recent.items.filter((item) => {
+        const trackName = item.track?.name?.toLowerCase() || "";
+        const artistName = item.track?.artists?.map(a => a?.name?.toLowerCase() || "").join(" ") || "";
+        const hasMoney = trackName.includes("money");
+        const hasMatter = trackName.includes("matter") || trackName.includes("2 night") || trackName.includes("tonight");
+        const isPrince = artistName.includes("prince");
+        
+        return (
+          (hasMoney && hasMatter) ||
+          (isPrince && hasMoney && (hasMatter || trackName.includes("don't") || trackName.includes("dont")))
+        );
+      });
+      
+      if (princeTracksForCheck.length > 0) {
+        const princeInTop3 = top3.some(track => {
+          const trackName = track.name.toLowerCase();
+          const artistName = track.artists.toLowerCase();
+          return (
+            (trackName.includes("money") && trackName.includes("matter")) ||
+            (artistName.includes("prince") && trackName.includes("money"))
+          );
+        });
+        
+        if (!princeInTop3) {
+          const position = recent.items.indexOf(princeTracksForCheck[0]) + 1;
+          console.warn(
+            `⚠️ Prince track was found in recently played (position ${position}) but didn't make it into the top 3 unique tracks. ` +
+            `This can happen if: 1) You played 3 other unique songs more recently, 2) The track was a duplicate of one already in your top 3, or 3) The track didn't have proper metadata.`
+          );
+        }
+      }
+    }
 
     // Always render (even if empty, will show "—" placeholders)
     console.log("Final top3 to render:", top3, "length:", top3.length);
@@ -1473,6 +1571,8 @@ async function updateLeftStackFromSpotify(token) {
     console.error("Failed to update left stack from Spotify", e);
     // On error, ensure placeholders are shown
     renderTop3IntoLeftStack([]);
+    // Re-throw the error so the refresh mechanism can handle token refresh
+    throw e;
   }
 }
 
@@ -1484,6 +1584,8 @@ initSpotify();
 
 // Periodic refresh of Spotify data every 30 seconds
 let spotifyRefreshInterval = null;
+let isRefreshing = false; // Flag to prevent overlapping refresh requests
+
 function startSpotifyRefresh() {
   // Clear any existing interval
   if (spotifyRefreshInterval) {
@@ -1492,30 +1594,74 @@ function startSpotifyRefresh() {
 
   // Refresh every 30 seconds
   spotifyRefreshInterval = setInterval(async () => {
-    const token = localStorage.getItem("spotify_access_token");
-    if (token) {
-      try {
-        console.log("🔄 Refreshing Spotify data...");
-        await updateLeftStackFromSpotify(token);
-      } catch (error) {
-        console.error("Failed to refresh Spotify data:", error);
-        // If token expired, stop refreshing (user will need to reconnect)
-        if (error.status === 401) {
+    // Prevent overlapping refresh requests
+    if (isRefreshing) {
+      console.log("⏸️ Refresh already in progress, skipping...");
+      return;
+    }
+
+    let token = localStorage.getItem("spotify_access_token");
+    if (!token) {
+      console.log("⚠️ No access token found, stopping refresh");
+      clearInterval(spotifyRefreshInterval);
+      spotifyRefreshInterval = null;
+      return;
+    }
+
+    isRefreshing = true;
+    try {
+      console.log("🔄 Refreshing Spotify data...");
+      await updateLeftStackFromSpotify(token);
+    } catch (error) {
+      console.error("Failed to refresh Spotify data:", error);
+      
+      // If token expired, try to refresh it
+      if (error.status === 401) {
+        const refreshToken = localStorage.getItem("spotify_refresh_token");
+        if (refreshToken) {
+          try {
+            console.log("🔄 Access token expired, attempting to refresh...");
+            const refreshed = await refreshAccessToken(
+              SPOTIFY_CLIENT_ID,
+              refreshToken
+            );
+            const newAccess = refreshed.access_token;
+            const newRefresh = refreshed.refresh_token || refreshToken;
+            
+            if (newAccess) {
+              localStorage.setItem("spotify_access_token", newAccess);
+              if (newRefresh) {
+                localStorage.setItem("spotify_refresh_token", newRefresh);
+              }
+              console.log("✅ Token refreshed successfully, retrying update...");
+              
+              // Retry the update with the new token
+              await updateLeftStackFromSpotify(newAccess);
+            } else {
+              throw new Error("No access token in refresh response");
+            }
+          } catch (refreshError) {
+            console.error("❌ Failed to refresh access token:", refreshError);
+            // Token refresh failed, user needs to reconnect
+            clearInterval(spotifyRefreshInterval);
+            spotifyRefreshInterval = null;
+            setAuthUIConnected(false);
+            localStorage.removeItem("spotify_access_token");
+            localStorage.removeItem("spotify_refresh_token");
+          }
+        } else {
+          // No refresh token available, user needs to reconnect
+          console.error("❌ No refresh token available, user needs to reconnect");
           clearInterval(spotifyRefreshInterval);
           spotifyRefreshInterval = null;
+          setAuthUIConnected(false);
         }
       }
+    } finally {
+      isRefreshing = false;
     }
   }, 30000); // 30 seconds
 }
-
-// Start refreshing after initial load
-setTimeout(() => {
-  const token = localStorage.getItem("spotify_access_token");
-  if (token) {
-    startSpotifyRefresh();
-  }
-}, 5000); // Start after 5 seconds to let initial load complete
 
 // --- Song card microinteraction (left-stack) ---
 document.addEventListener("DOMContentLoaded", function () {
@@ -2458,11 +2604,45 @@ async function initializeJournalCard(token) {
     } catch (error) {
       console.error("Failed to refresh songs:", error);
       
-      // If token expired, clear auth state
+      // If token expired, try to refresh it
       if (error.status === 401) {
-        localStorage.removeItem("spotify_access_token");
-        localStorage.removeItem("spotify_refresh_token");
-        setAuthUIConnected(false);
+        const refreshToken = localStorage.getItem("spotify_refresh_token");
+        if (refreshToken) {
+          try {
+            console.log("🔄 Access token expired, attempting to refresh...");
+            const refreshed = await refreshAccessToken(
+              SPOTIFY_CLIENT_ID,
+              refreshToken
+            );
+            const newAccess = refreshed.access_token;
+            const newRefresh = refreshed.refresh_token || refreshToken;
+            
+            if (newAccess) {
+              localStorage.setItem("spotify_access_token", newAccess);
+              if (newRefresh) {
+                localStorage.setItem("spotify_refresh_token", newRefresh);
+              }
+              console.log("✅ Token refreshed successfully, retrying update...");
+              
+              // Retry the update with the new token
+              await updateLeftStackFromSpotify(newAccess);
+            } else {
+              throw new Error("No access token in refresh response");
+            }
+          } catch (refreshError) {
+            console.error("❌ Failed to refresh access token:", refreshError);
+            // Token refresh failed, user needs to reconnect
+            localStorage.removeItem("spotify_access_token");
+            localStorage.removeItem("spotify_refresh_token");
+            setAuthUIConnected(false);
+          }
+        } else {
+          // No refresh token available, user needs to reconnect
+          console.error("❌ No refresh token available, user needs to reconnect");
+          localStorage.removeItem("spotify_access_token");
+          localStorage.removeItem("spotify_refresh_token");
+          setAuthUIConnected(false);
+        }
       }
     } finally {
       // Re-enable button and remove loading state
