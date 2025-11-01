@@ -94,15 +94,18 @@
 
 // --- Fortune Reveal Swoosh Sound Effect ---
 (function initFortuneSwooshSound() {
-  // Reuse audio context from keyboard sound if available, otherwise create new one
+  // Shared audio context - will be initialized on first use
   let audioContext = null;
 
   function getAudioContext() {
     if (!audioContext) {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
+    // Resume immediately if suspended to avoid any delay
     if (audioContext.state === "suspended") {
-      audioContext.resume();
+      audioContext.resume().catch(() => {
+        // Ignore resume errors (user interaction required)
+      });
     }
     return audioContext;
   }
@@ -111,9 +114,14 @@
   window.playFortuneSwoosh = function() {
     try {
       const ctx = getAudioContext();
+      
+      // Ensure context is running immediately (no await to avoid delay)
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
 
-      // Create a soft swoosh sound - longer duration for smooth effect
-      const duration = 0.35; // 350ms for a gentle swoosh
+      // Create a soft, ethereal swoosh sound - longer duration for smooth reveal
+      const duration = 0.5; // 500ms for a gentle, revealing swoosh
       const sampleRate = ctx.sampleRate;
       const frameCount = Math.floor(duration * sampleRate);
       const buffer = ctx.createBuffer(1, frameCount, sampleRate);
@@ -123,39 +131,44 @@
         const t = i / sampleRate;
         const progress = t / duration;
 
-        // Smooth envelope: gentle attack, smooth decay
-        // Creates a soft, airy feel
+        // Very smooth envelope: very gentle attack, very smooth decay
+        // Creates a soft, airy, revealing feel
         const envelope = 
-          Math.pow(progress, 0.5) * // Gentle attack
-          Math.pow(1 - progress, 1.5); // Smooth exponential decay
+          Math.pow(progress, 0.3) * // Very gentle, slow attack
+          Math.pow(1 - progress, 2.0); // Smooth exponential decay
 
-        // Frequency sweep: start high and sweep down (whoosh effect)
-        // Start around 800Hz, sweep down to 200Hz
-        const startFreq = 800;
-        const endFreq = 200;
-        const currentFreq = startFreq + (endFreq - startFreq) * progress;
+        // Frequency sweep: gentle sweep from mid-high to low
+        // Start around 500Hz, gently sweep down to 150Hz for a soft reveal
+        const startFreq = 500;
+        const endFreq = 150;
+        // Use easing for smoother frequency transition
+        const easedProgress = 1 - Math.pow(1 - progress, 2);
+        const currentFreq = startFreq + (endFreq - startFreq) * easedProgress;
 
-        // Generate filtered noise with frequency sweep
-        // Use multiple sine waves at different frequencies for texture
-        const noise1 = (Math.random() * 2 - 1) * 0.15;
-        const noise2 = (Math.random() * 2 - 1) * 0.1;
+        // Generate very soft, filtered noise for texture
+        const noise1 = (Math.random() * 2 - 1) * 0.08; // Much softer noise
+        const noise2 = (Math.random() * 2 - 1) * 0.05;
         
-        // Add swept frequency component for the whoosh
-        const sweep = Math.sin(2 * Math.PI * currentFreq * t) * 0.3;
-        const sweep2 = Math.sin(2 * Math.PI * currentFreq * 0.7 * t) * 0.15;
+        // Very soft swept frequency components - multiple harmonics for richness
+        const sweep1 = Math.sin(2 * Math.PI * currentFreq * t) * 0.15;
+        const sweep2 = Math.sin(2 * Math.PI * currentFreq * 0.6 * t) * 0.08;
+        const sweep3 = Math.sin(2 * Math.PI * currentFreq * 1.4 * t) * 0.05;
         
-        // Combine elements
-        const swoosh = (noise1 + noise2 + sweep + sweep2) * envelope * 0.2; // Soft volume
+        // Add a very subtle high-frequency shimmer for "revealing" quality
+        const shimmer = Math.sin(2 * Math.PI * (currentFreq * 3 + 100) * t) * 0.03 * (1 - progress);
+        
+        // Combine all elements very softly
+        const swoosh = (noise1 + noise2 + sweep1 + sweep2 + sweep3 + shimmer) * envelope * 0.12; // Very soft volume
 
-        // Apply gentle low-pass filter effect (reduce high frequencies over time)
-        const filterAmount = Math.pow(1 - progress, 0.3);
-        const filtered = swoosh * (0.3 + 0.7 * filterAmount);
+        // Apply gentle low-pass filter effect (smooth high-frequency rolloff)
+        const filterAmount = Math.pow(1 - progress, 0.5);
+        const filtered = swoosh * (0.5 + 0.5 * filterAmount);
 
-        // Ensure no clipping
-        data[i] = Math.max(-0.7, Math.min(0.7, filtered));
+        // Ensure no clipping with softer limits
+        data[i] = Math.max(-0.5, Math.min(0.5, filtered));
       }
 
-      // Play the sound
+      // Play the sound immediately
       const source = ctx.createBufferSource();
       source.buffer = buffer;
       source.connect(ctx.destination);
@@ -2296,12 +2309,14 @@ async function updateJournalCard(dateISO, top3Songs) {
     // Render fortune message after both delay and generation complete
     if (textEl) {
       textEl.classList.remove("thinking");
-      textEl.textContent = fortuneMessage;
       
-      // Play soft swoosh sound to audibly signal fortune reveal
+      // Play soft swoosh sound immediately, before text update for perfect sync
       if (typeof window.playFortuneSwoosh === 'function') {
         window.playFortuneSwoosh();
       }
+      
+      // Update text immediately after triggering sound
+      textEl.textContent = fortuneMessage;
     }
   } catch (error) {
     console.error("Failed to update journal card:", error);
