@@ -25,17 +25,23 @@ The journal card generates daily entries using:
 
 #### Setting Up OpenAI API Key
 
+⚠️ **IMPORTANT SECURITY NOTE**: Your previous API key was exposed and has been disabled. Generate a NEW key and follow the steps below.
+
 To enable journal entry generation, you need to set your OpenAI API key:
 
-1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
-2. Open your browser's developer console (F12)
-3. Run this command:
-   ```javascript
-   localStorage.setItem('openai_api_key', 'your-api-key-here')
+1. Get a NEW API key from [OpenAI](https://platform.openai.com/api-keys)
+2. Copy the example config file:
+   ```bash
+   cp config.example.js config.js
    ```
-4. Refresh the page
+3. Open `config.js` and replace `YOUR_OPENAI_API_KEY_HERE` with your actual API key
+4. Save the file and refresh the page
 
-**Note**: The API key is stored locally in your browser and never shared.
+**Security Notes**:
+- `config.js` is gitignored and will NEVER be committed to version control
+- NEVER commit or share your `config.js` file
+- If your API key is ever exposed, revoke it immediately on OpenAI's website
+- The API key is only used locally in your browser and sent directly to OpenAI's API
 
 ### 3. How It Works
 

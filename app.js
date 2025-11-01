@@ -675,8 +675,13 @@ async function fetchRecentlyPlayed(token, limit = 50) {
       : new URL(nextUrl);
 
     if (firstRequest) {
+      // Fetch maximum items to get the most recent data
       url.searchParams.set("limit", String(Math.min(limit, 50))); // Spotify max is 50 per request
+      // Note: Spotify's API doesn't support 'after' or 'before' params for recently-played
+      // It always returns the most recent 50 tracks from the last 7 days
     }
+
+    console.log(`🌐 Fetching from Spotify API: ${url.toString()}`);
 
     const result = await fetch(url.toString(), {
       method: "GET",
@@ -695,6 +700,12 @@ async function fetchRecentlyPlayed(token, limit = 50) {
     }
 
     const data = await result.json();
+    console.log(`📦 Spotify API Response:`, {
+      itemsReceived: data.items?.length || 0,
+      hasNext: !!data.next,
+      cursors: data.cursors,
+    });
+
     if (data.items && Array.isArray(data.items)) {
       allItems.push(...data.items);
     }
@@ -708,6 +719,10 @@ async function fetchRecentlyPlayed(token, limit = 50) {
       break;
     }
   } while (nextUrl && allItems.length < limit);
+
+  console.log(
+    `📊 Total items collected: ${allItems.length} (requested: ${limit})`
+  );
 
   // Return the combined result in the same format as the API
   return {
@@ -741,16 +756,43 @@ function getMostRecentUniqueTracks(recentlyPlayedJson, count = 3) {
   if (!recentlyPlayedJson || !Array.isArray(recentlyPlayedJson.items)) {
     return [];
   }
+
+  // Log all items with timestamps for debugging
+  console.log(
+    "🔍 All recently played items:",
+    recentlyPlayedJson.items.map((item) => ({
+      track: item.track?.name,
+      artist: item.track?.artists?.[0]?.name,
+      played_at: item.played_at,
+      timestamp: new Date(item.played_at).getTime(),
+    }))
+  );
+
   // Spotify returns newest-first; ensure sort just in case
   const items = [...recentlyPlayedJson.items].sort(
-    (a, b) => new Date(b.played_at) - new Date(a.played_at)
+    (a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime()
   );
+
+  console.log(
+    "📊 Sorted items (newest first):",
+    items.slice(0, 10).map((item) => ({
+      track: item.track?.name,
+      played_at: item.played_at,
+      time: new Date(item.played_at).toLocaleString(),
+    }))
+  );
+
   const seen = new Set();
   const results = [];
   for (const item of items) {
     const track = item.track;
     if (!track || !track.id || !track.name) continue;
-    if (seen.has(track.id)) continue;
+    if (seen.has(track.id)) {
+      console.log(
+        `⏭️ Skipping duplicate: ${track.name} by ${track.artists?.[0]?.name}`
+      );
+      continue;
+    }
     seen.add(track.id);
 
     const artists =
@@ -773,8 +815,24 @@ function getMostRecentUniqueTracks(recentlyPlayedJson, count = 3) {
       spotifyUrl: (track.external_urls && track.external_urls.spotify) || "",
       playedAt: item.played_at,
     });
+
+    console.log(
+      `✅ Added track ${results.length}: ${
+        track.name
+      } by ${artists} (played at ${new Date(item.played_at).toLocaleString()})`
+    );
+
     if (results.length >= count) break;
   }
+
+  console.log(
+    "🎯 Final top 3 selected:",
+    results.map(
+      (r) =>
+        `${r.name} by ${r.artists} (${new Date(r.playedAt).toLocaleString()})`
+    )
+  );
+
   return results;
 }
 
@@ -1214,6 +1272,65 @@ async function updateLeftStackFromSpotify(token) {
       console.warn(
         `Only ${recent.items.length} track(s) found. Spotify's recently played API only returns tracks from the last 7 days.`
       );
+    }
+
+    // Log ALL tracks with detailed timestamp info
+    if (recent.items && recent.items.length > 0) {
+      console.log(
+        "📋 Complete list of all tracks from Spotify (in order received):"
+      );
+      recent.items.forEach((item, index) => {
+        const playedAt = item.played_at;
+        const date = new Date(playedAt);
+        const trackName = item.track?.name || "Unknown";
+        const artistName = item.track?.artists?.[0]?.name || "Unknown";
+        const isLaurynHill =
+          trackName.toLowerCase().includes("nothing even matters") ||
+          artistName.toLowerCase().includes("lauryn hill");
+        const marker = isLaurynHill ? "🎯" : "  ";
+        console.log(
+          `${marker} ${index + 1}. "${trackName}" by ${artistName} | ` +
+            `Raw: ${playedAt} | ` +
+            `Parsed: ${date.toISOString()} | ` +
+            `Local: ${date.toLocaleString()} | ` +
+            `Unix: ${date.getTime()}`
+        );
+      });
+
+      // Check specifically for Lauryn Hill
+      const laurynHillTracks = recent.items.filter((item) => {
+        const trackName = item.track?.name?.toLowerCase() || "";
+        const artistName = item.track?.artists?.[0]?.name?.toLowerCase() || "";
+        return (
+          trackName.includes("nothing even matters") ||
+          artistName.includes("lauryn")
+        );
+      });
+
+      if (laurynHillTracks.length > 0) {
+        console.log(
+          "🎯 Found Lauryn Hill tracks:",
+          laurynHillTracks.map((item) => ({
+            name: item.track?.name,
+            artist: item.track?.artists?.[0]?.name,
+            played_at: item.played_at,
+            position: recent.items.indexOf(item) + 1,
+          }))
+        );
+      } else {
+        console.warn(
+          "⚠️ 'Nothing Even Matters' by Lauryn Hill NOT found in Spotify's recently played list"
+        );
+        console.log("💡 Possible reasons:");
+        console.log("   - Song was played more than 7 days ago");
+        console.log("   - Song was played on a different Spotify account");
+        console.log(
+          "   - Spotify hasn't synced the play yet (can take a few minutes)"
+        );
+        console.log(
+          "   - Song was played on a device that isn't connected to your account"
+        );
+      }
     }
 
     // Get the 3 most recent unique tracks (newest first)
