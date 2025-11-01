@@ -1138,6 +1138,7 @@ async function initSpotify() {
         const profile = await fetchProfile(existingToken);
         populateUI(profile);
         await updateLeftStackFromSpotify(existingToken);
+        startSpotifyRefresh(); // Start periodic refresh
         return;
       } catch (e) {
         if (e && e.status === 401 && existingRefresh) {
@@ -1154,6 +1155,7 @@ async function initSpotify() {
             const profile = await fetchProfile(newAccess);
             populateUI(profile);
             await updateLeftStackFromSpotify(newAccess);
+            startSpotifyRefresh(); // Start periodic refresh
             return;
           }
         }
@@ -1177,6 +1179,7 @@ async function initSpotify() {
           const profile = await fetchProfile(access);
           populateUI(profile);
           await updateLeftStackFromSpotify(access);
+          startSpotifyRefresh(); // Start periodic refresh
         } else {
           console.error("No access token in response", tokenResponse);
           alert("Failed to get access token. Please try again.");
@@ -1271,6 +1274,41 @@ if (document.getElementById("months")) {
   render();
 }
 initSpotify();
+
+// Periodic refresh of Spotify data every 30 seconds
+let spotifyRefreshInterval = null;
+function startSpotifyRefresh() {
+  // Clear any existing interval
+  if (spotifyRefreshInterval) {
+    clearInterval(spotifyRefreshInterval);
+  }
+
+  // Refresh every 30 seconds
+  spotifyRefreshInterval = setInterval(async () => {
+    const token = localStorage.getItem("spotify_access_token");
+    if (token) {
+      try {
+        console.log("🔄 Refreshing Spotify data...");
+        await updateLeftStackFromSpotify(token);
+      } catch (error) {
+        console.error("Failed to refresh Spotify data:", error);
+        // If token expired, stop refreshing (user will need to reconnect)
+        if (error.status === 401) {
+          clearInterval(spotifyRefreshInterval);
+          spotifyRefreshInterval = null;
+        }
+      }
+    }
+  }, 30000); // 30 seconds
+}
+
+// Start refreshing after initial load
+setTimeout(() => {
+  const token = localStorage.getItem("spotify_access_token");
+  if (token) {
+    startSpotifyRefresh();
+  }
+}, 5000); // Start after 5 seconds to let initial load complete
 
 // --- Song card microinteraction (left-stack) ---
 document.addEventListener("DOMContentLoaded", function () {
@@ -1385,11 +1423,36 @@ async function fetchLyrics(songTitle, artistName) {
 
 // --- OpenAI API Integration ---
 async function generateJournalEntry(songLyrics) {
-  // Use the shared API key
-  const apiKey = OPENAI_API_KEY;
-  if (!apiKey || apiKey === "YOUR_OPENAI_API_KEY_HERE") {
+  // Use the shared API key - check both window.OPENAI_API_KEY (from config.js) and fallback
+  const apiKey =
+    typeof window !== "undefined" && window.OPENAI_API_KEY
+      ? window.OPENAI_API_KEY
+      : OPENAI_API_KEY;
+
+  // Log key status for debugging (without exposing the key)
+  const keyStatus = {
+    windowKey: typeof window !== "undefined" ? !!window.OPENAI_API_KEY : false,
+    constantKey: !!OPENAI_API_KEY,
+    apiKeyExists: !!apiKey,
+    apiKeyLength: apiKey ? apiKey.length : 0,
+    keyPrefix: apiKey ? apiKey.substring(0, 7) + "..." : "none",
+  };
+  console.log("🔑 OpenAI API Key check:", keyStatus);
+
+  // On GitHub Pages, config.js might not be loaded if it's gitignored
+  if (
+    !apiKey &&
+    typeof window !== "undefined" &&
+    window.location.hostname.includes("github.io")
+  ) {
     console.warn(
-      "OpenAI API key not configured. Please copy config.example.js to config.js and add your API key."
+      "⚠️ Running on GitHub Pages - config.js might not be deployed (it's gitignored). You may need to manually upload config.js or include it in the repo."
+    );
+  }
+
+  if (!apiKey || apiKey === "YOUR_OPENAI_API_KEY_HERE") {
+    console.error(
+      "❌ OpenAI API key not configured. Check if config.js is loaded and contains window.OPENAI_API_KEY"
     );
     return null;
   }
@@ -1456,6 +1519,7 @@ Format your response as a JSON object with a single "message" field:
 
 Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
 
+    console.log("🔮 Calling OpenAI API...");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -1484,11 +1548,13 @@ Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
       const errorData = await response.json().catch(() => ({}));
       const errorMessage = errorData.error?.message || "Unknown error";
 
+      console.error("❌ OpenAI API error:", response.status, errorMessage);
+
       // Provide user-friendly error messages
       let userMessage = `OpenAI API error (${response.status}): ${errorMessage}`;
       if (response.status === 401) {
         userMessage =
-          "Invalid OpenAI API key. Please check your API key in localStorage.";
+          "Invalid OpenAI API key. Please check your config.js file contains window.OPENAI_API_KEY.";
       } else if (response.status === 429) {
         userMessage = "OpenAI API rate limit exceeded. Please try again later.";
       } else if (response.status === 500 || response.status === 503) {
@@ -1498,6 +1564,8 @@ Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
 
       throw new Error(userMessage);
     }
+
+    console.log("✅ OpenAI API call successful");
 
     const data = await response.json();
 
