@@ -131,41 +131,40 @@
         const t = i / sampleRate;
         const progress = t / duration;
 
-        // Very smooth envelope: very gentle attack, very smooth decay
-        // Creates a soft, airy, revealing feel
+        // Ultra-smooth envelope: extremely gentle attack, very smooth decay
+        // Creates a whisper-soft, barely-there feel
         const envelope = 
-          Math.pow(progress, 0.3) * // Very gentle, slow attack
-          Math.pow(1 - progress, 2.0); // Smooth exponential decay
+          Math.pow(progress, 0.2) * // Extremely gentle, very slow attack
+          Math.pow(1 - progress, 2.5); // Very smooth exponential decay
 
-        // Frequency sweep: gentle sweep from mid-high to low
-        // Start around 500Hz, gently sweep down to 150Hz for a soft reveal
-        const startFreq = 500;
-        const endFreq = 150;
-        // Use easing for smoother frequency transition
-        const easedProgress = 1 - Math.pow(1 - progress, 2);
+        // Frequency sweep: very gentle sweep from mid to low
+        // Start around 400Hz, very gently sweep down to 120Hz
+        const startFreq = 400;
+        const endFreq = 120;
+        // Use smoother easing for gentler frequency transition
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
         const currentFreq = startFreq + (endFreq - startFreq) * easedProgress;
 
-        // Generate very soft, filtered noise for texture
-        const noise1 = (Math.random() * 2 - 1) * 0.08; // Much softer noise
-        const noise2 = (Math.random() * 2 - 1) * 0.05;
+        // Generate whisper-soft filtered noise for minimal texture
+        const noise1 = (Math.random() * 2 - 1) * 0.03; // Very soft noise
+        const noise2 = (Math.random() * 2 - 1) * 0.02;
         
-        // Very soft swept frequency components - multiple harmonics for richness
-        const sweep1 = Math.sin(2 * Math.PI * currentFreq * t) * 0.15;
-        const sweep2 = Math.sin(2 * Math.PI * currentFreq * 0.6 * t) * 0.08;
-        const sweep3 = Math.sin(2 * Math.PI * currentFreq * 1.4 * t) * 0.05;
+        // Very soft swept frequency components - subtle harmonics
+        const sweep1 = Math.sin(2 * Math.PI * currentFreq * t) * 0.06;
+        const sweep2 = Math.sin(2 * Math.PI * currentFreq * 0.65 * t) * 0.03;
         
-        // Add a very subtle high-frequency shimmer for "revealing" quality
-        const shimmer = Math.sin(2 * Math.PI * (currentFreq * 3 + 100) * t) * 0.03 * (1 - progress);
+        // Very subtle low shimmer (avoid high frequencies that can be harsh)
+        const shimmer = Math.sin(2 * Math.PI * currentFreq * 1.8 * t) * 0.015 * (1 - progress);
         
-        // Combine all elements very softly
-        const swoosh = (noise1 + noise2 + sweep1 + sweep2 + sweep3 + shimmer) * envelope * 0.12; // Very soft volume
+        // Combine all elements extremely softly
+        const swoosh = (noise1 + noise2 + sweep1 + sweep2 + shimmer) * envelope * 0.04; // Whisper-soft volume
 
-        // Apply gentle low-pass filter effect (smooth high-frequency rolloff)
-        const filterAmount = Math.pow(1 - progress, 0.5);
-        const filtered = swoosh * (0.5 + 0.5 * filterAmount);
+        // Apply strong low-pass filter effect (heavy high-frequency rolloff)
+        const filterAmount = Math.pow(1 - progress, 0.7);
+        const filtered = swoosh * (0.7 + 0.3 * filterAmount);
 
-        // Ensure no clipping with softer limits
-        data[i] = Math.max(-0.5, Math.min(0.5, filtered));
+        // Ensure no clipping with very soft limits
+        data[i] = Math.max(-0.3, Math.min(0.3, filtered));
       }
 
       // Play the sound immediately
