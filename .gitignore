@@ -1,10 +1,19 @@
 # API Configuration (contains sensitive keys)
 config.js
+.env
+.env.local
+.env*.local
 
-# Node modules (if you add any build tools later)
+# Next.js
+.next/
+out/
+
+# Node modules
 node_modules/
 
 # OS files
 .DS_Store
 Thumbs.db
 
+# Vercel
+.vercel
