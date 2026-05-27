@@ -19,11 +19,7 @@
       crossorigin
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400;1,700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
@@ -31,27 +27,22 @@
     <script src="./config.js"></script>
   </head>
   <body>
-    <div class="auth-bar" hidden>
-      <button id="loginButtonAuthBar" type="button">Connect Spotify</button>
-      <button id="logoutButtonAuthBar" type="button" hidden>Disconnect</button>
-      <span class="auth-separator" style="display: none">⋅</span>
-      <span id="authStatus" style="display: none">Connected</span>
-    </div>
-
-    <main class="frame-root" aria-label="MacBook Pro 16 - 1">
-      <div class="frame-grid">
-        <section class="left-stack" aria-label="Songs">
-          <div class="now-playing-pill board-container">
-            <div class="board dot-matrix-display">
-              <div class="board__content display-text">
-                <div class="text-track">
-                  <div class="text">SONG NAME / 0:24</div>
-                  <div class="text text--clone">SONG NAME / 0:24</div>
-                </div>
-              </div>
+    <main class="frame-root">
+      <div class="bg-gradient bg-gradient--a is-visible" aria-hidden="true"></div>
+      <div class="bg-gradient bg-gradient--b" aria-hidden="true"></div>
+      <div class="now-playing-marquee" aria-live="polite">
+        <div class="marquee-shell">
+          <div class="marquee-viewport">
+            <div class="text-track">
+                <span class="marquee-text"><span class="song-title">'—'</span><span class="song-artist">by —</span></span>
+                <span class="marquee-text marquee-text--clone" aria-hidden="true"><span class="song-title">'—'</span><span class="song-artist">by —</span></span>
             </div>
           </div>
+        </div>
+      </div>
 
+      <div class="frame-grid">
+        <section class="left-stack" aria-label="Songs">
           <div class="song-cards">
             <article class="song-card">
               <div class="song-row">
@@ -60,7 +51,7 @@
                   <div class="song-artist">—</div>
                 </div>
                 <div class="song-art">
-                  <span class="song-badge song-badge-gold">1</span>
+                  <div class="song-art__cover"></div>
                 </div>
               </div>
               <button class="listen-btn" type="button">
@@ -92,7 +83,7 @@
                   <div class="song-artist">—</div>
                 </div>
                 <div class="song-art">
-                  <span class="song-badge song-badge-silver">2</span>
+                  <div class="song-art__cover"></div>
                 </div>
               </div>
               <button class="listen-btn" type="button">
@@ -124,7 +115,7 @@
                   <div class="song-artist">—</div>
                 </div>
                 <div class="song-art">
-                  <span class="song-badge song-badge-bronze">3</span>
+                  <div class="song-art__cover"></div>
                 </div>
               </div>
               <button class="listen-btn" type="button">
@@ -149,384 +140,80 @@
               </button>
             </article>
           </div>
+          <p class="fortune-quote" id="fortuneQuote" aria-live="polite"></p>
         </section>
-
-        <aside class="journal-card" aria-label="Your Latest Reading">
-          <h1 class="journal-title">Your Latest Reading</h1>
-          <p class="journal-text">-</p>
-          <div class="journal-date">-</div>
-        </aside>
 
       </div>
     </main>
 
-    <!-- Gradient Customizer Overlay -->
-    <div class="gradient-customizer-overlay" hidden aria-label="Background Customizer">
-      <div class="gradient-customizer-card">
-        <div class="customizer-header">
-          <h2 class="customizer-title">Background</h2>
-          <button
-            class="customizer-close"
-            type="button"
-            aria-label="Close customizer"
-            id="closeCustomizer"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M18 6L6 18M6 6L18 18"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-          <div class="customizer-controls">
-            <div class="color-control-group">
-              <label class="color-label">Color 1</label>
-              <div class="color-input-wrapper">
-                <input
-                  type="color"
-                  id="color1"
-                  class="color-picker"
-                  value="#fefefe"
-                />
-                <input
-                  type="text"
-                  id="color1-text"
-                  class="color-text-input"
-                  value="#fefefe"
-                />
-              </div>
-            </div>
-            <div class="color-control-group">
-              <label class="color-label">Color 2</label>
-              <div class="color-input-wrapper">
-                <input
-                  type="color"
-                  id="color2"
-                  class="color-picker"
-                  value="#fff5f5"
-                />
-                <input
-                  type="text"
-                  id="color2-text"
-                  class="color-text-input"
-                  value="#fff5f5"
-                />
-              </div>
-            </div>
-            <div class="color-control-group">
-              <label class="color-label">Color 3</label>
-              <div class="color-input-wrapper">
-                <input
-                  type="color"
-                  id="color3"
-                  class="color-picker"
-                  value="#fff8f8"
-                />
-                <input
-                  type="text"
-                  id="color3-text"
-                  class="color-text-input"
-                  value="#fff8f8"
-                />
-              </div>
-            </div>
-          </div>
-          <div class="customizer-actions">
-            <button class="gradient-btn" type="button" id="applyGradient">
-              <span>Apply</span>
-              <svg
-                class="arrow"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 6L15 12L9 18"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-            <button class="gradient-btn" type="button" id="resetGradient">
-              <span>Reset</span>
-              <svg
-                class="arrow"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 6L15 12L9 18"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-          <div class="preset-selector">
-            <div class="preset-label">Presets</div>
-            <div class="preset-nav">
-              <button
-                class="pager-btn left preset-nav-btn"
-                type="button"
-                aria-label="Previous preset"
-                id="prevPreset"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M15 18L9 12L15 6"
-                    stroke="white"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-              <div class="preset-name" id="presetName">Default</div>
-              <button
-                class="pager-btn right preset-nav-btn"
-                type="button"
-                aria-label="Next preset"
-                id="nextPreset"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M9 6L15 12L9 18"
-                    stroke="white"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Info Overlay -->
-    <div class="info-overlay" hidden aria-label="About">
-      <div class="info-card">
-        <div class="info-header">
-          <h2 class="info-title">About 🎵</h2>
-          <button
-            class="info-close"
-            type="button"
-            aria-label="Close info"
-            id="closeInfo"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M18 6L6 18M6 6L18 18"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-        <div class="info-content">
-          <p class="info-description">
-            bumps is your Spotify fortune teller—scraping your 3 most recent tracks to create your latest fortune.
-          </p>
-          <div class="info-section">
-            <h3 class="info-subtitle">How it works</h3>
-            <ul class="info-list">
-              <li>Connect your Spotify account to scrape your most recent tracks</li>
-              <li>Your 3 most recent songs are analyzed to generate a personalized fortune</li>
-              <li>Lyrics from your songs help craft mysterious, poetic fortune messages</li>
-            </ul>
-          </div>
-          <div class="info-section">
-            <h3 class="info-subtitle">What you'll see</h3>
-            <ul class="info-list">
-              <li>Your 3 most recent unique tracks in the left stack</li>
-              <li>Real-time fortune cookie messages in the reading card</li>
-              <li>Beautiful, customizable gradient backgrounds</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="fortune-canvas-host" id="fortuneCanvasHost" aria-hidden="true"></div>
 
     <!-- Floating Action Buttons -->
     <div class="fab-container">
-      <button
-        class="fab-btn"
-        type="button"
-        aria-label="About bumps"
-        id="openInfo"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <div class="fab-auth" id="fabAuth">
+        <button
+          class="fab-btn"
+          type="button"
+          id="loginButton"
+          aria-label="Connect Spotify"
         >
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M12 16v-4M12 8h.01"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.78 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.242 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"
+            />
+          </svg>
+        </button>
 
-      <button
-        class="fab-btn"
-        type="button"
-        aria-label="Customize background"
-        id="openCustomizer"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <button
+          class="fab-btn"
+          type="button"
+          id="logoutButton"
+          aria-label="Disconnect Spotify"
           aria-hidden="true"
+          tabindex="-1"
         >
-          <path
-            d="M12 2L2 7L12 12L22 7L12 2Z"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M2 17L12 22L22 17"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M2 12L12 17L22 12"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-
-      <button
-        class="fab-btn"
-        type="button"
-        id="loginButton"
-        aria-label="Connect Spotify"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.78 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.242 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"
-          />
-        </svg>
-      </button>
-
-      <button
-        class="fab-btn"
-        type="button"
-        id="logoutButton"
-        aria-label="Disconnect Spotify"
-        hidden
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <polyline
-            points="16 17 21 12 16 7"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <line
-            x1="21"
-            y1="12"
-            x2="9"
-            y2="12"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <polyline
+              points="16 17 21 12 16 7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <line
+              x1="21"
+              y1="12"
+              x2="9"
+              y2="12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
 
       <button
         class="fab-btn"
@@ -567,13 +254,30 @@
       </button>
     </div>
 
-    <section
-      id="profile"
-      hidden
-      aria-label="Spotify Profile"
-      style="display: none"
-    ></section>
+    <a
+      class="follow-btn"
+      id="followButton"
+      href="https://open.spotify.com/user/theuribes"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Follow me on Spotify"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.78 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.242 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"
+        />
+      </svg>
+      Follow me
+    </a>
 
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

@@ -1,3 +1,10 @@
+// Spotify requires 127.0.0.1 for loopback redirects; auto-redirect from localhost
+if (window.location.hostname === "localhost") {
+  window.location.replace(
+    window.location.href.replace("localhost", "127.0.0.1")
+  );
+}
+
 // --- Keyboard ASMR Sound Effect ---
 (function initKeyboardSound() {
   // Create audio context (will be initialized on first user interaction)
@@ -179,540 +186,9 @@
   };
 })();
 
-// Mock data for design-only phase
-const MOCK_MONTHS = [
-  {
-    month: "October",
-    year: 2025,
-    days: [
-      {
-        dateISO: "2025-10-29",
-        weekday: "Wed",
-        songs: [
-          {
-            title: "POWERFUL MAN",
-            artist: "Alex G",
-            year: 2017,
-            lyric: "DAVEY broke the law again",
-          },
-          {
-            title: "ANYTHING",
-            artist: "The Velvet Rope",
-            year: 1997,
-            lyric: "(Hold me) so are you ready",
-          },
-          {
-            title: "SEND IT ON",
-            artist: "D'Angelo",
-            year: 2000,
-            lyric: "You can't disguise your emotions, baby",
-          },
-        ],
-      },
-      {
-        dateISO: "2025-10-30",
-        weekday: "Thu",
-        songs: [
-          {
-            title: "POWERFUL MAN",
-            artist: "Alex G",
-            year: 2017,
-            lyric: "Rocket",
-          },
-          {
-            title: "ANYTHING",
-            artist: "The Velvet Rope",
-            year: 1997,
-            lyric: "Kiss me to journey",
-          },
-          {
-            title: "SEND IT ON",
-            artist: "D'Angelo",
-            year: 2000,
-            lyric: "A brother is a brother",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    month: "November",
-    year: 2025,
-    days: [
-      {
-        dateISO: "2025-11-01",
-        weekday: "Sat",
-        songs: [
-          {
-            title: "Placeholder",
-            artist: "TBD",
-            year: 0,
-            lyric: "No data yet",
-          },
-          {
-            title: "Placeholder",
-            artist: "TBD",
-            year: 0,
-            lyric: "No data yet",
-          },
-          {
-            title: "Placeholder",
-            artist: "TBD",
-            year: 0,
-            lyric: "No data yet",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    month: "December",
-    year: 2025,
-    days: [
-      {
-        dateISO: "2025-12-01",
-        weekday: "Mon",
-        songs: [
-          {
-            title: "Placeholder",
-            artist: "TBD",
-            year: 0,
-            lyric: "No data yet",
-          },
-          {
-            title: "Placeholder",
-            artist: "TBD",
-            year: 0,
-            lyric: "No data yet",
-          },
-          {
-            title: "Placeholder",
-            artist: "TBD",
-            year: 0,
-            lyric: "No data yet",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    month: "September",
-    year: 2025,
-    days: [
-      {
-        dateISO: "2025-09-28",
-        weekday: "Sun",
-        songs: [
-          {
-            title: "Song A",
-            artist: "Artist A",
-            year: 2001,
-            lyric: "Sample lyric A",
-          },
-          {
-            title: "Song B",
-            artist: "Artist B",
-            year: 1999,
-            lyric: "Sample lyric B",
-          },
-          {
-            title: "Song C",
-            artist: "Artist C",
-            year: 2010,
-            lyric: "Sample lyric C",
-          },
-        ],
-      },
-    ],
-  },
-];
-
-// --- Date navigation state ---
-const __today = new Date();
-let currentYear = __today.getFullYear();
-let currentMonthIndex = __today.getMonth();
-let currentDayNumber = null; // 1..31 or null
-
-function getMonthKey(year, monthIndex) {
-  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
-}
-
-function monthIndexToName(idx) {
-  return [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ][idx];
-}
-
-function toKeyedMockMap() {
-  const map = new Map();
-  for (const m of MOCK_MONTHS) {
-    const monthIndex = new Date(`${m.month} 1, ${m.year}`).getMonth();
-    map.set(getMonthKey(m.year, monthIndex), { ...m, monthIndex });
-  }
-  return map;
-}
-
-function createPlaceholderMonth(year, monthIndex) {
-  const dateISO = `${year}-${String(monthIndex + 1).padStart(2, "0")}-01`;
-  return {
-    month: monthIndexToName(monthIndex),
-    year,
-    days: [],
-  };
-}
-
-function createPlaceholderDay(year, monthIndex, dayNumber) {
-  const dateISO = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(
-    dayNumber
-  ).padStart(2, "0")}`;
-  return {
-    dateISO,
-    weekday: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
-      new Date(dateISO).getDay()
-    ],
-    songs: [
-      { title: "Placeholder", artist: "TBD", year: 0, lyric: "No data yet" },
-      { title: "Placeholder", artist: "TBD", year: 0, lyric: "No data yet" },
-      { title: "Placeholder", artist: "TBD", year: 0, lyric: "No data yet" },
-    ],
-  };
-}
-
-function ensureSinglePlaceholderIfEmpty(year, monthIndex, days) {
-  if (!Array.isArray(days) || days.length === 0) {
-    return [createPlaceholderDay(year, monthIndex, 1)];
-  }
-  return days;
-}
-
-function getOrderedMonths() {
-  // Render the month based on current navigation state
-  const keyed = toKeyedMockMap();
-  const d = new Date(currentYear, currentMonthIndex, 1);
-  const key = getMonthKey(d.getFullYear(), d.getMonth());
-  const existing = keyed.get(key);
-  if (existing) {
-    const ensuredDays = ensureSinglePlaceholderIfEmpty(
-      d.getFullYear(),
-      d.getMonth(),
-      existing.days
-    );
-    // Constrain to a single day: selected via breadcrumb, otherwise the most recent
-    let daysForRender = ensuredDays;
-    if (Array.isArray(ensuredDays) && ensuredDays.length > 0) {
-      let selected = null;
-      if (currentDayNumber != null) {
-        const yyyy = String(currentYear);
-        const mm = String(currentMonthIndex + 1).padStart(2, "0");
-        const dd = String(currentDayNumber).padStart(2, "0");
-        const targetISO = `${yyyy}-${mm}-${dd}`;
-        selected = ensuredDays.find((dy) => dy.dateISO === targetISO) || null;
-      }
-      if (!selected) {
-        selected = ensuredDays.reduce((a, b) =>
-          a.dateISO > b.dateISO ? a : b
-        );
-      }
-      daysForRender = selected ? [selected] : ensuredDays.slice(0, 1);
-    }
-    return [
-      {
-        month: monthIndexToName(d.getMonth()),
-        year: d.getFullYear(),
-        days: daysForRender,
-      },
-    ];
-  }
-  const m = createPlaceholderMonth(d.getFullYear(), d.getMonth());
-  m.days = ensureSinglePlaceholderIfEmpty(
-    d.getFullYear(),
-    d.getMonth(),
-    m.days
-  );
-  return [m];
-}
-
-function formatDateLabel(dateISO) {
-  const d = new Date(dateISO);
-  return d.getDate().toString().padStart(2, "0");
-}
-
-function formatDayLabel(dateISO) {
-  const d = new Date(dateISO);
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d
-    .getDate()
-    .toString()
-    .padStart(2, "0")}`;
-}
-
-function render() {
-  const container = document.getElementById("months");
-  container.innerHTML = "";
-
-  const monthsToRender = getOrderedMonths();
-  for (const block of monthsToRender) {
-    const monthEl = document.createElement("section");
-    monthEl.className = "month";
-    monthEl.innerHTML = `
-      <div class="days"></div>
-    `;
-
-    const daysEl = monthEl.querySelector(".days");
-
-    // Create wrapper for left column (brand text + breadcrumb)
-    const leftColumn = document.createElement("div");
-    leftColumn.className = "left-column";
-
-    // Add brand text above breadcrumb
-    const brandText = document.createElement("div");
-    brandText.className = "brand-text";
-    brandText.textContent = "a public diary scored by my 3 most recent tracks";
-    leftColumn.appendChild(brandText);
-
-    // Insert breadcrumb: Year / Month / Day
-    const crumbs = document.createElement("div");
-    crumbs.className = "month-crumbs";
-    let dayLabel = "Day";
-    if (currentDayNumber) {
-      // Show just the day number in breadcrumb
-      dayLabel = String(currentDayNumber).padStart(2, "0");
-    } else if (block.days.length > 0) {
-      // Show the first day's number if no day is selected
-      const firstDay = block.days[0];
-      const dayNum = new Date(firstDay.dateISO).getDate();
-      dayLabel = String(dayNum).padStart(2, "0");
-    }
-    crumbs.innerHTML = `
-      <span class="crumb month-year" id="crumbYear" role="button" tabindex="0">${block.year}</span>
-      <span class="crumb-sep">/</span>
-      <span class="crumb month-title" id="crumbMonth" role="button" tabindex="0">${block.month}</span>
-      <span class="crumb-sep">/</span>
-      <span class="crumb" id="crumbDay" role="button" tabindex="0">${dayLabel}</span>
-    `;
-    leftColumn.appendChild(crumbs);
-    daysEl.appendChild(leftColumn);
-
-    // Create a right-side container for day cards
-    const dayList = document.createElement("div");
-    dayList.className = "day-list";
-    daysEl.appendChild(dayList);
-    for (const day of block.days) {
-      const id = `day-${day.dateISO}`;
-      const dayWrap = document.createElement("div");
-      dayWrap.className = "day";
-      dayWrap.id = id;
-
-      const labelEl = document.createElement("div");
-      labelEl.className = "day-label";
-      labelEl.id = "dayLabel";
-      labelEl.setAttribute("role", "button");
-      labelEl.setAttribute("tabindex", "0");
-      // Show selected day if available, otherwise show current day
-      if (currentDayNumber) {
-        const yyyy = String(currentYear);
-        const mm = String(currentMonthIndex + 1).padStart(2, "0");
-        const dd = String(currentDayNumber).padStart(2, "0");
-        const targetISO = `${yyyy}-${mm}-${dd}`;
-        labelEl.textContent = formatDayLabel(targetISO);
-      } else {
-        labelEl.textContent = formatDayLabel(day.dateISO);
-      }
-      dayWrap.appendChild(labelEl);
-
-      const dayEl = document.createElement("article");
-      dayEl.className = "day-card";
-      dayEl.innerHTML = `
-        <div class="songs"></div>
-      `;
-
-      const songsEl = dayEl.querySelector(".songs");
-      day.songs.slice(0, 3).forEach((song) => {
-        const s = document.createElement("div");
-        s.className = "song";
-        s.innerHTML = `
-          <div class="dot"></div>
-          <div>
-            <div class="title">${song.title}</div>
-            <div class="artist">${song.artist}</div>
-          </div>
-          <div class="year">${song.year}</div>
-        `;
-        songsEl.appendChild(s);
-      });
-
-      dayWrap.appendChild(dayEl);
-      dayList.appendChild(dayWrap);
-    }
-
-    container.appendChild(monthEl);
-  }
-
-  wireBreadcrumbHandlers();
-
-  if (currentDayNumber) {
-    const y = String(currentYear);
-    const m = String(currentMonthIndex + 1).padStart(2, "0");
-    const d = String(currentDayNumber).padStart(2, "0");
-    const el = document.getElementById(`day-${y}-${m}-${d}`);
-    el?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-      inline: "nearest",
-    });
-  }
-}
-
-// --- Picker overlay logic ---
-function getUniqueYears() {
-  const years = new Set();
-  for (const m of MOCK_MONTHS) years.add(m.year);
-  years.add(currentYear);
-  return Array.from(years).sort((a, b) => a - b);
-}
-
-function openPicker(type) {
-  const overlay = document.getElementById("pickerOverlay");
-  const optionsEl = document.getElementById("pickerOptions");
-  const titleEl = document.getElementById("pickerTitle");
-  const closeBtn = document.getElementById("pickerClose");
-
-  if (!overlay || !optionsEl || !titleEl || !closeBtn) return;
-
-  optionsEl.innerHTML = "";
-  let options = [];
-  if (type === "year") {
-    titleEl.textContent = "Select Year";
-    options = getUniqueYears().map((y) => ({ label: String(y), value: y }));
-  } else if (type === "month") {
-    titleEl.textContent = "Select Month";
-    options = Array.from({ length: 12 }, (_, i) => ({
-      label: monthIndexToName(i),
-      value: i,
-    }));
-  } else if (type === "day") {
-    titleEl.textContent = "Select Day";
-    const daysInMonth = new Date(
-      currentYear,
-      currentMonthIndex + 1,
-      0
-    ).getDate();
-    options = Array.from({ length: daysInMonth }, (_, i) => {
-      const dayNumber = i + 1;
-      const yyyy = String(currentYear);
-      const mm = String(currentMonthIndex + 1).padStart(2, "0");
-      const dd = String(dayNumber).padStart(2, "0");
-      const dateISO = `${yyyy}-${mm}-${dd}`;
-      return {
-        label: formatDayLabel(dateISO),
-        value: dayNumber,
-      };
-    });
-  }
-
-  for (const opt of options) {
-    const btn = document.createElement("button");
-    btn.className = "picker-option";
-    btn.type = "button";
-    btn.setAttribute("role", "option");
-    btn.textContent = opt.label;
-    btn.addEventListener("click", () => {
-      if (type === "year") {
-        currentYear = opt.value;
-        currentDayNumber = null;
-      } else if (type === "month") {
-        currentMonthIndex = opt.value;
-        currentDayNumber = null;
-      } else if (type === "day") {
-        currentDayNumber = opt.value;
-      }
-      closeOverlay();
-      render();
-    });
-    optionsEl.appendChild(btn);
-  }
-
-  function onBackdrop(e) {
-    if (e.target === overlay) {
-      closeOverlay();
-    }
-  }
-  function onKey(e) {
-    if (e.key === "Escape") {
-      closeOverlay();
-    }
-  }
-  function closeOverlay() {
-    overlay.hidden = true;
-    overlay.removeEventListener("click", onBackdrop);
-    document.removeEventListener("keydown", onKey);
-    closeBtn.removeEventListener("click", closeOverlay);
-    document.body.classList.remove("no-scroll");
-  }
-
-  overlay.hidden = false;
-  overlay.addEventListener("click", onBackdrop);
-  document.addEventListener("keydown", onKey);
-  closeBtn.addEventListener("click", closeOverlay);
-  document.body.classList.add("no-scroll");
-}
-
-function wireBreadcrumbHandlers() {
-  const yearEl = document.getElementById("crumbYear");
-  const monthEl = document.getElementById("crumbMonth");
-  const dayEl = document.getElementById("crumbDay");
-  const dayLabelEl = document.getElementById("dayLabel");
-
-  yearEl?.addEventListener("click", () => openPicker("year"));
-  monthEl?.addEventListener("click", () => openPicker("month"));
-  dayEl?.addEventListener("click", () => openPicker("day"));
-  dayLabelEl?.addEventListener("click", () => openPicker("day"));
-
-  const onKeyOpen = (type) => (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openPicker(type);
-    }
-  };
-  yearEl?.addEventListener("keydown", onKeyOpen("year"));
-  monthEl?.addEventListener("keydown", onKeyOpen("month"));
-  dayEl?.addEventListener("keydown", onKeyOpen("day"));
-  dayLabelEl?.addEventListener("keydown", onKeyOpen("day"));
-}
-
-// Placeholder for future Spotify integration
-async function fetchTopSongsForDay(/* date */) {
-  // Intentionally left as a stub for later integration.
-  return [];
-}
-
 // --- Spotify Web API (PKCE) integration ---
 const SPOTIFY_CLIENT_ID = "faf051d1e310436988ecdc54f79b7ac2";
+const CREATOR_SPOTIFY_URL = "https://open.spotify.com/user/theuribes";
 
 // --- OpenAI API Key (loaded from config.js - gitignored) ---
 // The API key is loaded from config.js to keep it out of version control
@@ -721,31 +197,24 @@ const OPENAI_API_KEY =
   typeof window !== "undefined" && window.OPENAI_API_KEY
     ? window.OPENAI_API_KEY
     : null;
-// Normalize redirect URI based on environment
-// Localhost: use /index.html, Production: use directory path with trailing slash
-const __pathNormalized = (function () {
+const SPOTIFY_REDIRECT_URI = (function () {
   try {
-    var p = window.location.pathname || "/";
-    var origin = window.location.origin;
-
-    // Check if we're on localhost (development)
-    if (origin.includes("127.0.0.1") || origin.includes("localhost")) {
-      // For localhost, use /index.html
-      return "/index.html";
-    } else {
-      // For production (GitHub Pages), remove index.html and ensure trailing slash
-      p = p.replace(/index\.html?$/i, "");
-      if (!p.endsWith("/")) p += "/";
-      return p;
+    const origin = window.location.origin;
+    const isLocal = origin.includes("127.0.0.1") || origin.includes("localhost");
+    if (isLocal) {
+      // Spotify requires 127.0.0.1 (not localhost) for loopback redirects
+      const port = window.location.port || "3000";
+      return `http://127.0.0.1:${port}/index.html`;
     }
+    // Production (GitHub Pages): directory path with trailing slash
+    let p = window.location.pathname || "/";
+    p = p.replace(/index\.html?$/i, "");
+    if (!p.endsWith("/")) p += "/";
+    return origin + p;
   } catch (_) {
-    return "/";
+    return window.location.origin + "/";
   }
 })();
-const SPOTIFY_REDIRECT_URI = window.location.origin + __pathNormalized;
-
-// Log redirect URI for debugging
-console.log("Spotify Redirect URI:", SPOTIFY_REDIRECT_URI);
 
 async function redirectToAuthCodeFlow(clientId) {
   const verifier = generateCodeVerifier(128);
@@ -758,7 +227,6 @@ async function redirectToAuthCodeFlow(clientId) {
   params.append("response_type", "code");
   params.append("redirect_uri", SPOTIFY_REDIRECT_URI);
 
-  console.log("Redirecting to Spotify with URI:", SPOTIFY_REDIRECT_URI);
   params.append(
     "scope",
     "user-read-email user-read-private user-read-recently-played"
@@ -862,8 +330,6 @@ async function fetchRecentlyPlayed(token, limit = 50) {
       // It always returns the most recent 50 tracks from the last 7 days
     }
 
-    console.log(`🌐 Fetching from Spotify API: ${url.toString()}`);
-
     const result = await fetch(url.toString(), {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
@@ -881,11 +347,6 @@ async function fetchRecentlyPlayed(token, limit = 50) {
     }
 
     const data = await result.json();
-    console.log(`📦 Spotify API Response:`, {
-      itemsReceived: data.items?.length || 0,
-      hasNext: !!data.next,
-      cursors: data.cursors,
-    });
 
     if (data.items && Array.isArray(data.items)) {
       allItems.push(...data.items);
@@ -901,11 +362,6 @@ async function fetchRecentlyPlayed(token, limit = 50) {
     }
   } while (nextUrl && allItems.length < limit);
 
-  console.log(
-    `📊 Total items collected: ${allItems.length} (requested: ${limit})`
-  );
-
-  // Return the combined result in the same format as the API
   return {
     items: allItems.slice(0, limit),
     limit: limit,
@@ -938,29 +394,8 @@ function getMostRecentUniqueTracks(recentlyPlayedJson, count = 3) {
     return [];
   }
 
-  // Log all items with timestamps for debugging
-  console.log(
-    "🔍 All recently played items:",
-    recentlyPlayedJson.items.map((item) => ({
-      track: item.track?.name,
-      artist: item.track?.artists?.[0]?.name,
-      played_at: item.played_at,
-      timestamp: new Date(item.played_at).getTime(),
-    }))
-  );
-
-  // Spotify returns newest-first; ensure sort just in case
   const items = [...recentlyPlayedJson.items].sort(
     (a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime()
-  );
-
-  console.log(
-    "📊 Sorted items (newest first):",
-    items.slice(0, 10).map((item) => ({
-      track: item.track?.name,
-      played_at: item.played_at,
-      time: new Date(item.played_at).toLocaleString(),
-    }))
   );
 
   const seen = new Set();
@@ -968,12 +403,7 @@ function getMostRecentUniqueTracks(recentlyPlayedJson, count = 3) {
   for (const item of items) {
     const track = item.track;
     if (!track || !track.id || !track.name) continue;
-    if (seen.has(track.id)) {
-      console.log(
-        `⏭️ Skipping duplicate: ${track.name} by ${track.artists?.[0]?.name}`
-      );
-      continue;
-    }
+    if (seen.has(track.id)) continue;
     seen.add(track.id);
 
     const artists =
@@ -986,111 +416,16 @@ function getMostRecentUniqueTracks(recentlyPlayedJson, count = 3) {
       id: track.id,
       name: track.name || "Unknown Track",
       artists: artists,
-      image:
-        (track.album &&
-          track.album.images &&
-          track.album.images[0] &&
-          track.album.images[0].url) ||
-        "",
+      image: track.album?.images?.[0]?.url || "",
       previewUrl: track.preview_url || "",
-      spotifyUrl: (track.external_urls && track.external_urls.spotify) || "",
+      spotifyUrl: track.external_urls?.spotify || "",
       playedAt: item.played_at,
     });
-
-    console.log(
-      `✅ Added track ${results.length}: ${
-        track.name
-      } by ${artists} (played at ${new Date(item.played_at).toLocaleString()})`
-    );
 
     if (results.length >= count) break;
   }
 
-  console.log(
-    "🎯 Final top 3 selected:",
-    results.map(
-      (r) =>
-        `${r.name} by ${r.artists} (${new Date(r.playedAt).toLocaleString()})`
-    )
-  );
-
   return results;
-}
-
-function groupTop3ByDay(recentlyPlayedJson) {
-  if (!recentlyPlayedJson || !Array.isArray(recentlyPlayedJson.items)) {
-    return new Map();
-  }
-  const byDay = new Map();
-  for (const item of recentlyPlayedJson.items) {
-    const playedAt = item.played_at;
-    if (!playedAt) continue;
-    const d = new Date(playedAt);
-    if (isNaN(d.getTime())) continue; // Skip invalid dates
-    const dateISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(d.getDate()).padStart(2, "0")}`;
-    const track = item.track;
-    if (!track) continue;
-    const trackId = track.id;
-    if (!trackId) continue; // Skip tracks without an ID
-    if (!track.name) continue; // Skip tracks without a name
-
-    if (!byDay.has(dateISO))
-      byDay.set(dateISO, { counts: new Map(), meta: new Map() });
-    const entry = byDay.get(dateISO);
-    entry.counts.set(trackId, (entry.counts.get(trackId) || 0) + 1);
-    if (!entry.meta.has(trackId)) {
-      const artists =
-        (track.artists || [])
-          .map((a) => (a && a.name ? a.name : ""))
-          .filter((name) => name.trim().length > 0)
-          .join(", ") || "Unknown Artist";
-
-      entry.meta.set(trackId, {
-        id: track.id,
-        name: track.name || "Unknown Track",
-        artists: artists,
-        image:
-          (track.album &&
-            track.album.images &&
-            track.album.images[0] &&
-            track.album.images[0].url) ||
-          "",
-        previewUrl: track.preview_url || "",
-        spotifyUrl: (track.external_urls && track.external_urls.spotify) || "",
-      });
-    }
-  }
-  // Convert to top 3 per day
-  const result = new Map();
-  for (const [dateISO, data] of byDay.entries()) {
-    const sorted = Array.from(data.counts.entries()).sort(
-      (a, b) => b[1] - a[1]
-    );
-    console.log(`Processing ${dateISO}:`, sorted.length, "unique tracks");
-
-    const top3 = [];
-    for (const [trackId, count] of sorted) {
-      if (top3.length >= 3) break;
-      const track = data.meta.get(trackId);
-      if (track && track.id && track.name) {
-        top3.push(track);
-      } else {
-        console.warn(
-          `Skipping invalid track metadata for trackId: ${trackId} on ${dateISO}`,
-          track
-        );
-      }
-    }
-
-    console.log(`Top 3 for ${dateISO}:`, top3.length, "valid tracks");
-    if (top3.length > 0) {
-      result.set(dateISO, top3);
-    }
-  }
-  return result;
 }
 
 function renderTop3IntoLeftStack(tracks) {
@@ -1100,12 +435,7 @@ function renderTop3IntoLeftStack(tracks) {
     return;
   }
 
-  // Ensure tracks is an array
   if (!Array.isArray(tracks)) {
-    console.warn(
-      "renderTop3IntoLeftStack: tracks is not an array, converting:",
-      tracks
-    );
     tracks = tracks ? [tracks] : [];
   }
 
@@ -1113,71 +443,52 @@ function renderTop3IntoLeftStack(tracks) {
     container.querySelectorAll(".song-card")
   );
 
-  console.log("renderTop3IntoLeftStack called with tracks:", tracks);
-  console.log("Tracks array length:", tracks.length);
-  console.log("Found", cards.length, "song cards");
-
-  const badgeClasses = [
-    "song-badge-gold",
-    "song-badge-silver",
-    "song-badge-bronze",
-  ];
-  const badgeNumbers = ["1", "2", "3"];
-
-  // Ensure we have at least 3 cards (should be in HTML)
-  if (cards.length < 3) {
-    console.warn("Expected 3 song cards, found", cards.length);
-  }
-
   for (let i = 0; i < cards.length; i++) {
     const card = cards[i];
     const data = tracks && tracks[i] ? tracks[i] : null;
     const titleEl = card.querySelector(".song-title");
     const artistEl = card.querySelector(".song-artist");
     const artEl = card.querySelector(".song-art");
+    const coverEl = card.querySelector(".song-art__cover");
     const listenBtn = card.querySelector(".listen-btn");
 
     if (!data) {
-      console.log(`Card ${i + 1}: No data, setting placeholders`);
       if (titleEl) titleEl.textContent = "—";
       if (artistEl) artistEl.textContent = "—";
-      if (artEl) {
+      if (coverEl) {
+        coverEl.style.backgroundImage = "";
+        coverEl.style.background = "#fff";
+      } else if (artEl) {
         artEl.style.backgroundImage = "";
         artEl.style.background = "#fff";
       }
       if (card) {
         card.dataset.previewUrl = "";
         card.dataset.spotifyUrl = "";
+        card.dataset.coverUrl = "";
       }
       continue;
     }
-
-    console.log(`Card ${i + 1}: Rendering`, data.name, "by", data.artists);
 
     if (titleEl) titleEl.textContent = data.name || "—";
     if (artistEl) {
       artistEl.textContent = data.artists ? `by ${data.artists}` : "—";
     }
 
-    if (artEl) {
+    if (coverEl) {
+      coverEl.style.background = data.image
+        ? `center/cover no-repeat url('${data.image}')`
+        : "#fff";
+    } else if (artEl) {
       artEl.style.background = data.image
         ? `center/cover no-repeat url('${data.image}')`
         : "#fff";
-      artEl.style.borderRadius = "24px";
-      // Ensure badge exists with correct class and number
-      let badge = artEl.querySelector(".song-badge");
-      if (!badge) {
-        badge = document.createElement("span");
-        badge.className = "song-badge";
-        artEl.appendChild(badge);
-      }
-      badge.className = `song-badge ${badgeClasses[i] || badgeClasses[0]}`;
-      badge.textContent = badgeNumbers[i] || "1";
     }
 
     if (card) {
       card.dataset.previewUrl = data.previewUrl || "";
       card.dataset.spotifyUrl = data.spotifyUrl || "";
+      card.dataset.coverUrl = data.image || "";
     }
 
     // Remove old event listeners by cloning the button
@@ -1191,6 +502,11 @@ function renderTop3IntoLeftStack(tracks) {
         if (url) window.open(url, "_blank");
       });
     }
+  }
+
+  if (tracks && tracks.length > 0) {
+    container.classList.add("is-loaded");
+    preloadCoverArtGradients(tracks.map((track) => track?.image));
   }
 }
 
@@ -1211,25 +527,17 @@ function ensureAudio() {
   return __audioEl;
 }
 
-function setNowPlaying(title, artist, previewUrl) {
-  const pill = document.querySelector(".now-playing-pill");
-  if (pill) {
-    const textTrack = pill.querySelector(".text-track");
+function setNowPlaying(title, artist, previewUrl, coverUrl) {
+  const marquee = document.querySelector(".now-playing-marquee");
+  if (marquee) {
+    const textTrack = marquee.querySelector(".text-track");
     const hasTrack = !!(title && artist);
-    if (hasTrack) {
-      const text = `Now Playing: ${title} — ${artist} 🔊 `;
-      if (textTrack) {
-        // Update both text elements for seamless scrolling (matching CodePen structure)
-        textTrack.innerHTML = `<div class="text">${text}</div><div class="text text--clone">${text}</div>`;
-      } else {
-        // Fallback for older structure
-        const textElement = pill.querySelector(".text");
-        if (textElement) {
-          textElement.textContent = text;
-        } else {
-          pill.textContent = text;
-        }
-      }
+    if (hasTrack && textTrack) {
+      const coverHtml = coverUrl
+        ? `<img class="marquee-cover" src="${coverUrl}" alt="" />`
+        : "";
+      const label = `<span class="song-title">'${title}'</span><span class="song-artist">by ${artist}</span>${coverHtml}`;
+      textTrack.innerHTML = `<span class="marquee-text">${label}</span><span class="marquee-text marquee-text--clone" aria-hidden="true">${label}</span>`;
     }
   }
   const audio = ensureAudio();
@@ -1242,98 +550,464 @@ function setNowPlaying(title, artist, previewUrl) {
   }
 }
 
-function populateUI(profile) {
-  const profileSection = document.getElementById("profile");
-  const authStatus = document.getElementById("authStatus");
-  if (profileSection) profileSection.hidden = false;
-  if (authStatus) authStatus.textContent = "Connected";
+// --- Cover art background gradient ---
+const GRADIENT_CACHE_KEY = "bumps_gradient_cache";
+const LAST_TOP_COVER_KEY = "bumps_last_top_cover";
+const DEFAULT_GRADIENT_COLORS = [
+  "#c4b5fd",
+  "#fda4af",
+  "#93c5fd",
+  "#fcd34d",
+];
 
-  const displayName = document.getElementById("displayName");
-  const avatar = document.getElementById("avatar");
-  const id = document.getElementById("id");
-  const email = document.getElementById("email");
-  const uri = document.getElementById("uri");
-  const url = document.getElementById("url");
-  const imgUrl = document.getElementById("imgUrl");
+function rgbToHex(r, g, b) {
+  return (
+    "#" +
+    [r, g, b]
+      .map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
 
-  if (displayName) displayName.innerText = profile.display_name || "";
-  if (avatar) {
-    avatar.innerHTML = "";
-    if (profile.images && profile.images[0]) {
-      const profileImage = new Image(200, 200);
-      profileImage.src = profile.images[0].url;
-      avatar.appendChild(profileImage);
-    }
+function mixRgb(a, b, amount) {
+  return [
+    a[0] + (b[0] - a[0]) * amount,
+    a[1] + (b[1] - a[1]) * amount,
+    a[2] + (b[2] - a[2]) * amount,
+  ];
+}
+
+function hexToRgba(hex, alpha = 1) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
   }
-  if (id) id.innerText = profile.id || "";
-  if (email) email.innerText = profile.email || "";
-  if (uri) {
-    uri.innerText = profile.uri || "";
-    if (profile.external_urls && profile.external_urls.spotify) {
-      uri.setAttribute("href", profile.external_urls.spotify);
-    }
+  return Math.abs(hash) || 1;
+}
+
+function createSeededRandom(seed) {
+  let state = seed >>> 0;
+  return function seededRandom() {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function clamp255(value) {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function pixelSaturation(r, g, b) {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  return max === 0 ? 0 : (max - min) / max;
+}
+
+function pixelLuminance(r, g, b) {
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+function averageColors(colors) {
+  if (!colors.length) return [254, 254, 254];
+  const sum = colors.reduce(
+    (acc, color) => [acc[0] + color[0], acc[1] + color[1], acc[2] + color[2]],
+    [0, 0, 0]
+  );
+  return [sum[0] / colors.length, sum[1] / colors.length, sum[2] / colors.length];
+}
+
+function boostSaturation(rgb, amount = 1.45) {
+  const avg = (rgb[0] + rgb[1] + rgb[2]) / 3;
+  return [
+    clamp255(avg + (rgb[0] - avg) * amount),
+    clamp255(avg + (rgb[1] - avg) * amount),
+    clamp255(avg + (rgb[2] - avg) * amount),
+  ];
+}
+
+function generateBackgroundGradient(colors, seed = 1) {
+  const palette = colors.slice(0, 4);
+  while (palette.length < 4) {
+    palette.push(DEFAULT_GRADIENT_COLORS[palette.length]);
   }
-  if (url) {
-    url.innerText = profile.href || "";
-    if (profile.href) {
-      url.setAttribute("href", profile.href);
-    }
+
+  const rand = createSeededRandom(seed);
+  const spotCount = 11 + Math.floor(rand() * 5);
+  const blobs = [];
+
+  for (let i = 0; i < spotCount; i++) {
+    const color = palette[i % palette.length];
+    const x = 2 + rand() * 96;
+    const y = 4 + rand() * 48;
+    const width = 520 + rand() * 1500;
+    const height = 360 + rand() * 780;
+    const alpha = 0.52 + rand() * 0.38;
+    const midStop = 38 + rand() * 28;
+    const fadeStop = midStop + 24 + rand() * 22;
+
+    blobs.push(
+      `radial-gradient(ellipse ${width.toFixed(0)}px ${height.toFixed(0)}px at ${x.toFixed(1)}% ${y.toFixed(1)}%, ${hexToRgba(color, alpha)} 0%, ${hexToRgba(color, alpha * 0.42)} ${midStop.toFixed(1)}%, transparent ${fadeStop.toFixed(1)}%)`
+    );
   }
-  if (imgUrl) {
-    imgUrl.innerText =
-      profile.images && profile.images[0] && profile.images[0].url
-        ? profile.images[0].url
-        : "(no profile image)";
+
+  const deepRgb = boostSaturation(
+    [
+      parseInt(palette[2].slice(1, 3), 16),
+      parseInt(palette[2].slice(3, 5), 16),
+      parseInt(palette[2].slice(5, 7), 16),
+    ],
+    1.15
+  );
+  const base = mixRgb(deepRgb, [255, 255, 255], 0.18);
+
+  return `${blobs.join(",\n")},\n${rgbToHex(base[0], base[1], base[2])}`;
+}
+
+const GRADIENT_TRANSITION_MS = 700;
+let activeGradientLayer = null;
+let gradientFadeTimer = 0;
+const gradientPreloadCache = new Map();
+const gradientPreloadPromises = new Map();
+
+function buildGradientEntry(colors, seed) {
+  return {
+    colors,
+    seed,
+    css: generateBackgroundGradient(colors, seed),
+  };
+}
+
+async function preloadCoverArtGradient(imageUrl) {
+  if (!imageUrl) return null;
+  if (gradientPreloadCache.has(imageUrl)) {
+    return gradientPreloadCache.get(imageUrl);
+  }
+  if (gradientPreloadPromises.has(imageUrl)) {
+    return gradientPreloadPromises.get(imageUrl);
+  }
+
+  const promise = colorsFromCoverArt(imageUrl)
+    .then((colors) => {
+      const entry = buildGradientEntry(colors, hashString(imageUrl));
+      gradientPreloadCache.set(imageUrl, entry);
+      gradientPreloadPromises.delete(imageUrl);
+      return entry;
+    })
+    .catch(() => {
+      const entry = buildGradientEntry(DEFAULT_GRADIENT_COLORS, 1);
+      gradientPreloadCache.set(imageUrl, entry);
+      gradientPreloadPromises.delete(imageUrl);
+      return entry;
+    });
+
+  gradientPreloadPromises.set(imageUrl, promise);
+  return promise;
+}
+
+function preloadCoverArtGradients(urls) {
+  urls.filter(Boolean).forEach((url) => {
+    preloadCoverArtGradient(url);
+  });
+}
+
+function getGradientLayers() {
+  const root = document.querySelector(".frame-root");
+  if (!root) return null;
+
+  const a = root.querySelector(".bg-gradient--a");
+  const b = root.querySelector(".bg-gradient--b");
+  if (!a || !b) return null;
+
+  return { a, b };
+}
+
+function showGradientLayer(layer, animate) {
+  if (!layer) return;
+
+  layer.classList.add("is-visible");
+  if (animate) {
+    void layer.offsetWidth;
+  } else {
+    layer.style.transition = "none";
+    void layer.offsetWidth;
+    layer.style.transition = "";
   }
 }
 
-function setAuthUIConnected(connected) {
-  // Update all login buttons
-  const loginButtons = [
-    document.getElementById("loginButton"),
-    document.getElementById("loginButtonAuthBar"),
-  ].filter(Boolean);
+function hideGradientLayer(layer) {
+  if (!layer) return;
+  layer.classList.remove("is-visible");
+}
 
-  // Update all logout buttons
-  const logoutButtons = [
-    document.getElementById("logoutButton"),
-    document.getElementById("logoutButtonAuthBar"),
-  ].filter(Boolean);
+function initGradientLayers() {
+  const layers = getGradientLayers();
+  if (layers) activeGradientLayer = layers.a;
+}
 
-  const authStatus = document.getElementById("authStatus");
-  const authSeparator = document.querySelector(".auth-separator");
+function applyBackgroundGradient(colors, seed = 1, options = {}) {
+  const css = options.css || generateBackgroundGradient(colors, seed);
+  const layers = getGradientLayers();
 
-  if (connected) {
-    loginButtons.forEach((btn) => (btn.hidden = true));
-    logoutButtons.forEach((btn) => (btn.hidden = false));
-    if (authSeparator) authSeparator.style.display = "";
-    if (authStatus) {
-      authStatus.textContent = "Connected";
-      authStatus.style.display = "";
+  if (!layers) {
+    const frameRoot = document.querySelector(".frame-root");
+    if (frameRoot) frameRoot.style.background = css;
+    if (options.persist) {
+      saveGradientCache(colors, seed, options.coverUrl || "");
     }
+    return;
+  }
+
+  const { a, b } = layers;
+  const previousLayer = activeGradientLayer;
+
+  if (options.instant && previousLayer) {
+    previousLayer.style.background = css;
+    showGradientLayer(previousLayer, false);
+    hideGradientLayer(previousLayer === a ? b : a);
+    activeGradientLayer = previousLayer;
+    if (options.persist) {
+      saveGradientCache(colors, seed, options.coverUrl || "");
+    }
+    return;
+  }
+
+  const nextLayer = activeGradientLayer === a ? b : a;
+  const shouldAnimate = !!previousLayer && !options.instant;
+
+  nextLayer.style.background = css;
+
+  if (!previousLayer) {
+    showGradientLayer(nextLayer, false);
+    activeGradientLayer = nextLayer;
   } else {
-    loginButtons.forEach((btn) => (btn.hidden = false));
-    logoutButtons.forEach((btn) => (btn.hidden = true));
-    if (authSeparator) authSeparator.style.display = "none";
-    if (authStatus) {
-      authStatus.textContent = "Not connected";
-      authStatus.style.display = "none";
+    showGradientLayer(nextLayer, shouldAnimate);
+
+    if (gradientFadeTimer) {
+      window.clearTimeout(gradientFadeTimer);
     }
+
+    activeGradientLayer = nextLayer;
+
+    if (shouldAnimate && previousLayer !== nextLayer) {
+      gradientFadeTimer = window.setTimeout(() => {
+        if (activeGradientLayer !== previousLayer) {
+          hideGradientLayer(previousLayer);
+        }
+        gradientFadeTimer = 0;
+      }, GRADIENT_TRANSITION_MS);
+    } else if (previousLayer !== nextLayer) {
+      hideGradientLayer(previousLayer);
+    }
+  }
+
+  if (options.persist) {
+    saveGradientCache(colors, seed, options.coverUrl || "");
+  }
+}
+
+function saveGradientCache(colors, seed, coverUrl) {
+  try {
+    localStorage.setItem(
+      GRADIENT_CACHE_KEY,
+      JSON.stringify({
+        colors,
+        seed,
+        coverUrl: coverUrl || "",
+        savedAt: Date.now(),
+      })
+    );
+  } catch {}
+}
+
+function loadGradientCache() {
+  try {
+    const raw = localStorage.getItem(GRADIENT_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.colors) || parsed.colors.length === 0) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function restoreCachedGradient() {
+  const cached = loadGradientCache();
+  if (!cached) return false;
+  applyBackgroundGradient(cached.colors, cached.seed || 1, { instant: true });
+  return true;
+}
+
+function restoreBackgroundOnLoad() {
+  restoreCachedGradient();
+  const topCover = localStorage.getItem(LAST_TOP_COVER_KEY);
+  if (topCover) applyCoverArtGradient(topCover);
+}
+
+function colorsFromCoverArt(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const size = 80;
+      canvas.width = size;
+      canvas.height = size;
+      ctx.drawImage(img, 0, 0, size, size);
+
+      const { data } = ctx.getImageData(0, 0, size, size);
+      const pixels = [];
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        if (a < 128) continue;
+        pixels.push([r, g, b]);
+      }
+
+      if (pixels.length === 0) {
+        resolve(DEFAULT_GRADIENT_COLORS);
+        return;
+      }
+
+      const average = averageColors(pixels);
+      const colorful = pixels.filter((pixel) => pixelSaturation(...pixel) > 0.1);
+      const pool = colorful.length >= 8 ? colorful : pixels;
+
+      const bySaturation = [...pool].sort(
+        (a, b) => pixelSaturation(...b) - pixelSaturation(...a)
+      );
+      const vibrant = averageColors(
+        bySaturation.slice(0, Math.max(6, Math.floor(pool.length * 0.18)))
+      );
+
+      const byLuminance = [...pool].sort(
+        (a, b) => pixelLuminance(...a) - pixelLuminance(...b)
+      );
+      const deep = averageColors(
+        byLuminance.slice(0, Math.max(4, Math.floor(pool.length * 0.12)))
+      );
+      const bright = averageColors(
+        byLuminance.slice(-Math.max(4, Math.floor(pool.length * 0.12)))
+      );
+
+      const colors = [
+        boostSaturation(vibrant, 1.55),
+        boostSaturation(average, 1.35),
+        boostSaturation(deep, 1.25),
+        mixRgb(boostSaturation(bright, 1.4), boostSaturation(vibrant, 1.2), 0.35),
+      ].map((rgb) => rgbToHex(rgb[0], rgb[1], rgb[2]));
+
+      resolve(colors);
+    };
+    img.onerror = reject;
+    img.src = imageUrl;
+  });
+}
+
+let coverArtGradientRequest = 0;
+
+async function applyCoverArtGradient(imageUrl) {
+  const requestId = ++coverArtGradientRequest;
+
+  if (!imageUrl) {
+    if (!restoreCachedGradient()) {
+      applyBackgroundGradient(DEFAULT_GRADIENT_COLORS, 1);
+    }
+    return;
+  }
+
+  try {
+    let entry = gradientPreloadCache.get(imageUrl);
+    if (!entry) {
+      entry = await preloadCoverArtGradient(imageUrl);
+    }
+    if (requestId !== coverArtGradientRequest || !entry) return;
+
+    applyBackgroundGradient(entry.colors, entry.seed, {
+      persist: true,
+      coverUrl: imageUrl,
+      css: entry.css,
+    });
+  } catch {
+    if (requestId !== coverArtGradientRequest) return;
+    if (!restoreCachedGradient()) {
+      applyBackgroundGradient(DEFAULT_GRADIENT_COLORS, 1);
+    }
+  }
+}
+
+function updateBackgroundFromCard(card) {
+  const coverUrl = card?.dataset?.coverUrl || "";
+  if (coverUrl) {
+    applyCoverArtGradient(coverUrl);
+    return;
+  }
+  restoreBackgroundOnLoad();
+}
+
+function setActiveSongCard(card) {
+  const container = document.querySelector(".song-cards");
+  if (!container || !card) return;
+
+  const cards = container.querySelectorAll(".song-card");
+  cards.forEach((entry) => {
+    entry.classList.toggle("dimmed", entry !== card);
+  });
+
+  const titleEl = card.querySelector(".song-title");
+  const artistEl = card.querySelector(".song-artist");
+  const preview = card.dataset.previewUrl || "";
+  const cover = card.dataset.coverUrl || "";
+  const titleTxt = titleEl ? titleEl.textContent.replace(/[""]/g, "") : "";
+  const artistTxt = artistEl ? artistEl.textContent.replace(/^by\s+/i, "") : "";
+
+  if (titleTxt !== "—" && artistTxt !== "—") {
+    setNowPlaying(titleTxt, artistTxt, preview, cover);
+  }
+
+  updateBackgroundFromCard(card);
+}
+
+function populateUI(profile) {
+  const authStatus = document.getElementById("authStatus");
+  if (authStatus) authStatus.textContent = "Connected";
+}
+
+function setAuthUIConnected(connected) {
+  const loginBtn = document.getElementById("loginButton");
+  const logoutBtn = document.getElementById("logoutButton");
+  const fabAuth = document.getElementById("fabAuth");
+
+  if (fabAuth) {
+    fabAuth.classList.toggle("is-connected", connected);
+  }
+
+  if (loginBtn) {
+    loginBtn.setAttribute("aria-hidden", connected ? "true" : "false");
+    loginBtn.tabIndex = connected ? -1 : 0;
+  }
+
+  if (logoutBtn) {
+    logoutBtn.setAttribute("aria-hidden", connected ? "false" : "true");
+    logoutBtn.tabIndex = connected ? 0 : -1;
   }
 }
 
 async function initSpotify() {
-  // Handle multiple login buttons (in auth-bar and FAB)
-  const loginButtons = [
-    document.getElementById("loginButton"),
-    document.getElementById("loginButtonAuthBar"),
-  ].filter(Boolean);
-
-  // Handle multiple logout buttons (in auth-bar and FAB)
-  const logoutButtons = [
-    document.getElementById("logoutButton"),
-    document.getElementById("logoutButtonAuthBar"),
-  ].filter(Boolean);
+  const loginBtn = document.getElementById("loginButton");
+  const logoutBtn = document.getElementById("logoutButton");
 
   const handleLogin = () => {
     if (
@@ -1351,19 +1025,10 @@ async function initSpotify() {
     localStorage.removeItem("spotify_access_token");
     localStorage.removeItem("spotify_refresh_token");
     setAuthUIConnected(false);
-    const profileEl = document.getElementById("profile");
-    if (profileEl) profileEl.hidden = true;
   };
 
-  // Attach event listeners to all login buttons
-  loginButtons.forEach((btn) => {
-    btn.addEventListener("click", handleLogin);
-  });
-
-  // Attach event listeners to all logout buttons
-  logoutButtons.forEach((btn) => {
-    btn.addEventListener("click", handleLogout);
-  });
+  if (loginBtn) loginBtn.addEventListener("click", handleLogin);
+  if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
 
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -1376,7 +1041,7 @@ async function initSpotify() {
         setAuthUIConnected(true);
         const profile = await fetchProfile(existingToken);
         populateUI(profile);
-        await updateLeftStackFromSpotify(existingToken);
+        await updateLeftStackFromSpotify(existingToken, { generateFortune: true });
         startSpotifyRefresh(); // Start periodic refresh
         return;
       } catch (e) {
@@ -1393,7 +1058,7 @@ async function initSpotify() {
               localStorage.setItem("spotify_refresh_token", newRefresh);
             const profile = await fetchProfile(newAccess);
             populateUI(profile);
-            await updateLeftStackFromSpotify(newAccess);
+            await updateLeftStackFromSpotify(newAccess, { generateFortune: true });
             startSpotifyRefresh(); // Start periodic refresh
             return;
           }
@@ -1417,7 +1082,7 @@ async function initSpotify() {
           setAuthUIConnected(true);
           const profile = await fetchProfile(access);
           populateUI(profile);
-          await updateLeftStackFromSpotify(access);
+          await updateLeftStackFromSpotify(access, { generateFortune: true });
           startSpotifyRefresh(); // Start periodic refresh
         } else {
           console.error("No access token in response", tokenResponse);
@@ -1442,253 +1107,41 @@ async function initSpotify() {
   }
 }
 
-async function updateLeftStackFromSpotify(token) {
+async function updateLeftStackFromSpotify(token, options = {}) {
+  const { generateFortune = false } = options;
   try {
-    // Fetch more tracks to ensure we catch all recent plays (up to 50 per API call, but we'll paginate)
-    // Spotify API max is 50 per request, but we can paginate to get more
     const recent = await fetchRecentlyPlayed(token, 50);
-    console.log("Fetched recently played:", recent);
-    console.log(`📊 Total items fetched: ${recent.items?.length || 0}`);
 
-    // Log a summary of all artists in the fetched tracks
-    if (recent.items && recent.items.length > 0) {
-      const artistCounts = {};
-      recent.items.forEach((item) => {
-        const artist = item.track?.artists?.[0]?.name || "Unknown";
-        artistCounts[artist] = (artistCounts[artist] || 0) + 1;
-      });
-      console.log(
-        "🎵 Artists in fetched tracks:",
-        Object.entries(artistCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10)
-          .map(([artist, count]) => `${artist} (${count})`)
-          .join(", ")
-      );
-    }
-
-    // If we have very few tracks, warn the user
-    if (recent.items && recent.items.length < 3) {
-      console.warn(
-        `Only ${recent.items.length} track(s) found. Spotify's recently played API only returns tracks from the last 7 days.`
-      );
-    }
-
-    // Log ALL tracks with detailed timestamp info
-    if (recent.items && recent.items.length > 0) {
-      console.log(
-        "📋 Complete list of all tracks from Spotify (in order received):"
-      );
-      recent.items.forEach((item, index) => {
-        const playedAt = item.played_at;
-        const date = new Date(playedAt);
-        const trackName = item.track?.name || "Unknown";
-        const artistName = item.track?.artists?.[0]?.name || "Unknown";
-        const isLaurynHill =
-          trackName.toLowerCase().includes("nothing even matters") ||
-          artistName.toLowerCase().includes("lauryn hill");
-        const marker = isLaurynHill ? "🎯" : "  ";
-        console.log(
-          `${marker} ${index + 1}. "${trackName}" by ${artistName} | ` +
-            `Raw: ${playedAt} | ` +
-            `Parsed: ${date.toISOString()} | ` +
-            `Local: ${date.toLocaleString()} | ` +
-            `Unix: ${date.getTime()}`
-        );
-      });
-
-      // Check specifically for Prince - Money don't matter tonight
-      // Handle variations: "Money Don't Matter 2 Night", "Money don't matter tonight", etc.
-      const princeTracks = recent.items.filter((item) => {
-        const trackName = item.track?.name?.toLowerCase() || "";
-        const artistName =
-          item.track?.artists
-            ?.map((a) => a?.name?.toLowerCase() || "")
-            .join(" ") || "";
-        const hasMoney = trackName.includes("money");
-        const hasMatter =
-          trackName.includes("matter") ||
-          trackName.includes("2 night") ||
-          trackName.includes("tonight");
-        const isPrince = artistName.includes("prince");
-
-        return (
-          (hasMoney && hasMatter) ||
-          (isPrince &&
-            hasMoney &&
-            (hasMatter ||
-              trackName.includes("don't") ||
-              trackName.includes("dont")))
-        );
-      });
-
-      if (princeTracks.length > 0) {
-        console.log(
-          "🎯 Found 'Money don't matter tonight' by Prince:",
-          princeTracks.map((item) => ({
-            name: item.track?.name,
-            artist: item.track?.artists?.map((a) => a.name).join(", "),
-            played_at: item.played_at,
-            position: recent.items.indexOf(item) + 1,
-            timestamp: new Date(item.played_at).toLocaleString(),
-          }))
-        );
-      } else {
-        console.warn(
-          "⚠️ 'Money don't matter tonight' by Prince NOT found in the fetched tracks"
-        );
-        console.log("💡 Searching all tracks for Prince...");
-
-        // Search for any Prince tracks
-        const allPrinceTracks = recent.items.filter((item) => {
-          const artistName =
-            item.track?.artists
-              ?.map((a) => a?.name?.toLowerCase() || "")
-              .join(" ") || "";
-          return artistName.includes("prince");
-        });
-
-        if (allPrinceTracks.length > 0) {
-          console.log(
-            `   Found ${allPrinceTracks.length} Prince track(s) in recently played:`,
-            allPrinceTracks.map((item) => ({
-              name: item.track?.name,
-              played_at: new Date(item.played_at).toLocaleString(),
-              position: recent.items.indexOf(item) + 1,
-            }))
-          );
-        } else {
-          console.log("   No Prince tracks found in the fetched data");
-        }
-
-        console.log("💡 Possible reasons the track isn't showing:");
-        console.log(
-          "   - Song was played more than 7 days ago (Spotify only returns last 7 days)"
-        );
-        console.log("   - Song was played on a different Spotify account");
-        console.log(
-          "   - Spotify hasn't synced the play yet (can take a few minutes)"
-        );
-        console.log(
-          "   - Song was played on a device that isn't connected to your account"
-        );
-        console.log(
-          `   - Track might be beyond position ${recent.items.length} in your history`
-        );
-      }
-
-      // Check specifically for Lauryn Hill
-      const laurynHillTracks = recent.items.filter((item) => {
-        const trackName = item.track?.name?.toLowerCase() || "";
-        const artistName = item.track?.artists?.[0]?.name?.toLowerCase() || "";
-        return (
-          trackName.includes("nothing even matters") ||
-          artistName.includes("lauryn")
-        );
-      });
-
-      if (laurynHillTracks.length > 0) {
-        console.log(
-          "🎯 Found Lauryn Hill tracks:",
-          laurynHillTracks.map((item) => ({
-            name: item.track?.name,
-            artist: item.track?.artists?.[0]?.name,
-            played_at: item.played_at,
-            position: recent.items.indexOf(item) + 1,
-          }))
-        );
-      }
-    }
-
-    // Get the 3 most recent unique tracks (newest first)
     const top3 = getMostRecentUniqueTracks(recent, 3);
-    console.log("Most recent 3 tracks:", top3);
-    console.log(
-      "🎵 Top 3 tracks being displayed:",
-      top3.map((t) => `${t.name} by ${t.artists}`)
-    );
-
-    // Check if Prince track made it into top 3 (only if we have items)
-    if (recent.items && recent.items.length > 0) {
-      // Search for Prince track again to check position
-      const princeTracksForCheck = recent.items.filter((item) => {
-        const trackName = item.track?.name?.toLowerCase() || "";
-        const artistName =
-          item.track?.artists
-            ?.map((a) => a?.name?.toLowerCase() || "")
-            .join(" ") || "";
-        const hasMoney = trackName.includes("money");
-        const hasMatter =
-          trackName.includes("matter") ||
-          trackName.includes("2 night") ||
-          trackName.includes("tonight");
-        const isPrince = artistName.includes("prince");
-
-        return (
-          (hasMoney && hasMatter) ||
-          (isPrince &&
-            hasMoney &&
-            (hasMatter ||
-              trackName.includes("don't") ||
-              trackName.includes("dont")))
-        );
-      });
-
-      if (princeTracksForCheck.length > 0) {
-        const princeInTop3 = top3.some((track) => {
-          const trackName = track.name.toLowerCase();
-          const artistName = track.artists.toLowerCase();
-          return (
-            (trackName.includes("money") && trackName.includes("matter")) ||
-            (artistName.includes("prince") && trackName.includes("money"))
-          );
-        });
-
-        if (!princeInTop3) {
-          const position = recent.items.indexOf(princeTracksForCheck[0]) + 1;
-          console.warn(
-            `⚠️ Prince track was found in recently played (position ${position}) but didn't make it into the top 3 unique tracks. ` +
-              `This can happen if: 1) You played 3 other unique songs more recently, 2) The track was a duplicate of one already in your top 3, or 3) The track didn't have proper metadata.`
-          );
-        }
-      }
-    }
-
-    // Always render (even if empty, will show "—" placeholders)
-    console.log("Final top3 to render:", top3, "length:", top3.length);
     renderTop3IntoLeftStack(top3);
+
+    if (top3[0]?.image) {
+      try {
+        localStorage.setItem(LAST_TOP_COVER_KEY, top3[0].image);
+      } catch {}
+    }
 
     // Update journal card with most recent tracks (only if we have songs)
     if (top3 && top3.length > 0) {
-      // Use local date components to ensure accurate date
       const today = new Date();
       const year = today.getFullYear();
-      const month = today.getMonth() + 1; // getMonth() is 0-indexed
+      const month = today.getMonth() + 1;
       const day = today.getDate();
       const todayISO = `${year}-${String(month).padStart(2, "0")}-${String(
         day
       ).padStart(2, "0")}`;
-      await updateJournalCard(todayISO, top3);
 
-      // ensure first card is active to trigger play
+      if (generateFortune) {
+        await updateJournalCard(todayISO, top3);
+      }
+
       const container = document.querySelector(".song-cards");
       if (container) {
         const cards = Array.prototype.slice.call(
           container.querySelectorAll(".song-card")
         );
         if (cards[0]) {
-          cards.forEach((c, i) => c.classList.toggle("dimmed", i !== 0));
-          const titleEl = cards[0].querySelector(".song-title");
-          const artistEl = cards[0].querySelector(".song-artist");
-          const preview = cards[0].dataset.previewUrl || "";
-          const titleTxt = titleEl
-            ? titleEl.textContent.replace(/[""]/g, "")
-            : "";
-          const artistTxt = artistEl ? artistEl.textContent : "";
-          // Only set now playing if we have actual data
-          if (titleTxt !== "—" && artistTxt !== "—") {
-            setNowPlaying(titleTxt, artistTxt, preview);
-          }
+          setActiveSongCard(cards[0]);
         }
       }
     }
@@ -1701,10 +1154,9 @@ async function updateLeftStackFromSpotify(token) {
   }
 }
 
-// Kick off UI render and Spotify init (guarded for new UI layout)
-if (document.getElementById("months")) {
-  render();
-}
+initGradientLayers();
+restoreBackgroundOnLoad();
+
 initSpotify();
 
 // Periodic refresh of Spotify data every 30 seconds
@@ -1719,15 +1171,10 @@ function startSpotifyRefresh() {
 
   // Refresh every 30 seconds
   spotifyRefreshInterval = setInterval(async () => {
-    // Prevent overlapping refresh requests
-    if (isRefreshing) {
-      console.log("⏸️ Refresh already in progress, skipping...");
-      return;
-    }
+    if (isRefreshing) return;
 
     let token = localStorage.getItem("spotify_access_token");
     if (!token) {
-      console.log("⚠️ No access token found, stopping refresh");
       clearInterval(spotifyRefreshInterval);
       spotifyRefreshInterval = null;
       return;
@@ -1735,8 +1182,7 @@ function startSpotifyRefresh() {
 
     isRefreshing = true;
     try {
-      console.log("🔄 Refreshing Spotify data...");
-      await updateLeftStackFromSpotify(token);
+      await updateLeftStackFromSpotify(token, { generateFortune: false });
     } catch (error) {
       console.error("Failed to refresh Spotify data:", error);
 
@@ -1745,31 +1191,18 @@ function startSpotifyRefresh() {
         const refreshToken = localStorage.getItem("spotify_refresh_token");
         if (refreshToken) {
           try {
-            console.log("🔄 Access token expired, attempting to refresh...");
-            const refreshed = await refreshAccessToken(
-              SPOTIFY_CLIENT_ID,
-              refreshToken
-            );
+            const refreshed = await refreshAccessToken(SPOTIFY_CLIENT_ID, refreshToken);
             const newAccess = refreshed.access_token;
             const newRefresh = refreshed.refresh_token || refreshToken;
-
             if (newAccess) {
               localStorage.setItem("spotify_access_token", newAccess);
-              if (newRefresh) {
-                localStorage.setItem("spotify_refresh_token", newRefresh);
-              }
-              console.log(
-                "✅ Token refreshed successfully, retrying update..."
-              );
-
-              // Retry the update with the new token
-              await updateLeftStackFromSpotify(newAccess);
+              if (newRefresh) localStorage.setItem("spotify_refresh_token", newRefresh);
+              await updateLeftStackFromSpotify(newAccess, { generateFortune: false });
             } else {
               throw new Error("No access token in refresh response");
             }
           } catch (refreshError) {
-            console.error("❌ Failed to refresh access token:", refreshError);
-            // Token refresh failed, user needs to reconnect
+            console.error("Failed to refresh access token:", refreshError);
             clearInterval(spotifyRefreshInterval);
             spotifyRefreshInterval = null;
             setAuthUIConnected(false);
@@ -1777,10 +1210,6 @@ function startSpotifyRefresh() {
             localStorage.removeItem("spotify_refresh_token");
           }
         } else {
-          // No refresh token available, user needs to reconnect
-          console.error(
-            "❌ No refresh token available, user needs to reconnect"
-          );
           clearInterval(spotifyRefreshInterval);
           spotifyRefreshInterval = null;
           setAuthUIConnected(false);
@@ -1789,11 +1218,16 @@ function startSpotifyRefresh() {
     } finally {
       isRefreshing = false;
     }
-  }, 30000); // 30 seconds
+  }, 30000);
 }
 
 // --- Song card microinteraction (left-stack) ---
 document.addEventListener("DOMContentLoaded", function () {
+  const followBtn = document.getElementById("followButton");
+  if (followBtn && CREATOR_SPOTIFY_URL) {
+    followBtn.href = CREATOR_SPOTIFY_URL;
+  }
+
   var container = document.querySelector(".song-cards");
   if (!container) return;
 
@@ -1802,23 +1236,12 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   if (cards.length === 0) return;
 
-  function setActiveCard(nextActive) {
-    cards.forEach(function (card) {
-      if (card === nextActive) {
-        card.classList.remove("dimmed");
-      } else {
-        card.classList.add("dimmed");
-      }
-    });
-  }
-
-  // Initialize to first card active
-  setActiveCard(cards[0]);
+  setActiveSongCard(cards[0]);
 
   cards.forEach(function (card) {
     card.addEventListener("click", function () {
       if (!card.classList.contains("dimmed")) return;
-      setActiveCard(card);
+      setActiveSongCard(card);
     });
   });
 });
@@ -1923,23 +1346,12 @@ function getOpenAIApiKey() {
 }
 
 // --- OpenAI API Integration ---
-async function generateJournalEntry(songLyrics) {
+async function generateJournalEntry(songLyrics, previousFortunes = []) {
   // Use the helper function to get API key from all sources
   const apiKey = getOpenAIApiKey();
 
-  // Log key status for debugging (without exposing the key)
-  const keyStatus = {
-    windowKey: typeof window !== "undefined" ? !!window.OPENAI_API_KEY : false,
-    constantKey: !!OPENAI_API_KEY,
-    apiKeyExists: !!apiKey,
-    keyPrefix: apiKey ? apiKey.substring(0, 7) + "..." : "none",
-  };
-  console.log("🔑 OpenAI API Key check:", keyStatus);
-
   if (!apiKey || apiKey === "YOUR_OPENAI_API_KEY_HERE") {
-    console.error(
-      "❌ OpenAI API key not configured. On GitHub Pages, ensure the OPENAI_API_KEY secret is set in repository settings."
-    );
+    console.error("OpenAI API key not configured.");
     return null;
   }
 
@@ -1983,35 +1395,41 @@ NOTE: Lyrics were not available for these songs, so base the fortune on the song
 
     prompt += `
 
-Write a single fortune cookie message that:
-- Is mysterious, poetic, and thought-provoking like a real fortune cookie
-- Draws subtle connections to the themes, lyrics, or vibes of these songs
-- Is concise (2-3 sentences maximum, ideally just 1-2 sentences)
-- Feels inspiring or reflective, not just descriptive
+Write a single fortune cookie phrase that:
+- Is a short, punchy one-liner (under 12 words)
+- Feels cryptic and poetic like a real fortune cookie slip
+- Draws subtle inspiration from the themes or vibes of these songs
 - Uses second person ("You", "Your") or timeless wisdom
-- Has the mystical, slightly cryptic quality of fortune cookies
-- References the music subtly—maybe a theme, emotion, or vibe from the songs—but doesn't explicitly name the songs or artists
+- Never names the songs or artists
+`;
 
-Examples of good fortune cookie style:
-- "The rhythm you seek is already within you. Listen."
-- "Your next chapter begins when you stop replaying the last one."
-- "The melody of change is quieter than you think, but louder than you expect."
-- "What you're searching for in others, you'll find in your own reflection."
+    const recentFortunes = [...new Set(previousFortunes.map((f) => f.trim()).filter(Boolean))];
+    if (recentFortunes.length > 0) {
+      prompt += `
+PREVIOUS FORTUNES FROM THIS SESSION (never repeat or closely paraphrase any of these):
+${recentFortunes.map((f) => `- "${f}"`).join("\n")}
 
+Write something clearly different in wording, metaphor, and angle.
+`;
+    }
+
+    prompt += `
 Format your response as a JSON object with a single "message" field:
 {
-  "message": "Your fortune cookie message here - mysterious, poetic, and inspired by the songs"
+  "message": "Your short fortune phrase here"
 }
 
 Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
 
-    console.log("🔮 Calling OpenAI API...");
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const endpoint = isLocal ? "/api/chat" : "https://api.openai.com/v1/chat/completions";
+    const headers = isLocal
+      ? { "Content-Type": "application/json", "X-API-Key": apiKey }
+      : { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
+
+    const response = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers,
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
@@ -2025,7 +1443,7 @@ Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
             content: prompt,
           },
         ],
-        temperature: 0.85,
+        temperature: 0.95,
         max_tokens: 300,
       }),
     });
@@ -2034,9 +1452,8 @@ Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
       const errorData = await response.json().catch(() => ({}));
       const errorMessage = errorData.error?.message || "Unknown error";
 
-      console.error("❌ OpenAI API error:", response.status, errorMessage);
+      console.error("OpenAI API error:", response.status, errorMessage);
 
-      // Provide user-friendly error messages
       let userMessage = `OpenAI API error (${response.status}): ${errorMessage}`;
       if (response.status === 401) {
         userMessage =
@@ -2050,8 +1467,6 @@ Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
 
       throw new Error(userMessage);
     }
-
-    console.log("✅ OpenAI API call successful");
 
     const data = await response.json();
 
@@ -2130,62 +1545,20 @@ Return ONLY valid JSON, no markdown, no code blocks, no explanations.`;
   }
 }
 
-// Cache version - increment this to invalidate all cached entries
-const JOURNAL_CACHE_VERSION = 4; // Updated for fortune cookie format
+function normalizeFortuneText(text) {
+  return (text || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
 
-// --- Journal Entry Generation & Caching ---
-async function generateJournalEntryForDay(dateISO, top3Songs) {
-  // Always check if this is today - if not, don't use cache
-  // Use local date components to ensure accurate date
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1; // getMonth() is 0-indexed
-  const day = today.getDate();
-  const todayISO = `${year}-${String(month).padStart(2, "0")}-${String(
-    day
-  ).padStart(2, "0")}`;
+function isDuplicateFortune(message, previousFortunes) {
+  const normalized = normalizeFortuneText(message);
+  if (!normalized) return false;
+  return previousFortunes.some(
+    (prev) => normalizeFortuneText(prev) === normalized
+  );
+}
 
-  const isToday = dateISO === todayISO;
-
-  // Only check cache if it's today
-  if (isToday) {
-    const cacheKey = `journal_entry_${dateISO}`;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        // Check cache version - if different, regenerate
-        if (parsed.cacheVersion !== JOURNAL_CACHE_VERSION) {
-          console.log("Cache version mismatch - regenerating with new prompt");
-          // Remove old cache entry
-          localStorage.removeItem(cacheKey);
-        } else {
-          // Verify it's for the same songs (by checking first song) and generated today
-          const cacheDate = parsed.generatedAt
-            ? new Date(parsed.generatedAt)
-            : null;
-          const cacheIsToday =
-            cacheDate &&
-            cacheDate.getFullYear() === today.getFullYear() &&
-            cacheDate.getMonth() === today.getMonth() &&
-            cacheDate.getDate() === today.getDate();
-
-          if (
-            parsed.message &&
-            parsed.songs &&
-            parsed.songs.length > 0 &&
-            parsed.songs[0].title === top3Songs[0]?.name &&
-            cacheIsToday
-          ) {
-            return parsed.message;
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to parse cached journal entry", e);
-      }
-    }
-  }
-
+// --- Fortune generation ---
+async function generateJournalEntryForDay(_dateISO, top3Songs, previousFortunes = []) {
   // Fetch lyrics for all 3 songs with better error handling
   const lyricsPromises = top3Songs.map(async (song) => {
     try {
@@ -2217,8 +1590,17 @@ async function generateJournalEntryForDay(dateISO, top3Songs) {
     // But add a note in the prompt that lyrics weren't available
   }
 
-  // Generate fortune cookie message using OpenAI
-  const fortuneMessage = await generateJournalEntry(songLyrics);
+  // Generate a fresh fortune cookie message using OpenAI
+  let fortuneMessage = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    fortuneMessage = await generateJournalEntry(songLyrics, previousFortunes);
+    if (
+      fortuneMessage &&
+      !isDuplicateFortune(fortuneMessage, previousFortunes)
+    ) {
+      break;
+    }
+  }
 
   if (!fortuneMessage || typeof fortuneMessage !== "string") {
     console.error("Journal generation failed: No fortune message returned");
@@ -2226,567 +1608,625 @@ async function generateJournalEntryForDay(dateISO, top3Songs) {
     return "Unable to generate fortune message. Please check your OpenAI API key and try again.";
   }
 
-  // Cache the result with version number
-  const cacheKey = `journal_entry_${dateISO}`;
-  localStorage.setItem(
-    cacheKey,
-    JSON.stringify({
-      message: fortuneMessage,
-      songs: top3Songs.map((s) => ({ title: s.name, artist: s.artists })),
-      generatedAt: new Date().toISOString(),
-      cacheVersion: JOURNAL_CACHE_VERSION,
-    })
-  );
-
   return fortuneMessage;
 }
 
-// Format date for journal display (MM.DD.YY)
-function formatJournalDate(dateISO) {
-  // Parse date string as local date (YYYY-MM-DD) to avoid timezone issues
-  const parts = dateISO.split("-");
-  const year = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10);
-  const day = parseInt(parts[2], 10);
-  const d = new Date(year, month - 1, day); // month is 0-indexed
+let readingAnimationId = 0;
 
-  const monthStr = String(d.getMonth() + 1).padStart(2, "0");
-  const dayStr = String(d.getDate()).padStart(2, "0");
-  const yearStr = String(d.getFullYear()).slice(-2);
-  return `${monthStr}.${dayStr}.${yearStr}`;
+const FORTUNE_PAPER = {
+  width: 340,
+  padX: 24,
+  padY: 12,
+  fontSize: 12,
+  lineHeight: 16,
+  maxLines: 2,
+  gap: 8,
+  fallDuration: 11500,
+};
+
+function getPaperPivot(group) {
+  return group?.userData?.paperPivot || group;
 }
 
-// --- Journal card logic ---
-async function updateJournalCard(dateISO, top3Songs) {
-  const card = document.querySelector(".journal-card");
-  if (!card) return;
+function setPaperRotation(group, rx, ry, rz) {
+  const pivot = getPaperPivot(group);
+  pivot.rotation.set(
+    rx,
+    ry !== undefined ? ry : pivot.rotation.y,
+    rz !== undefined ? rz : pivot.rotation.z
+  );
+  syncFortuneShadow(group);
+}
 
-  // Always use today's date for display, regardless of data date
-  // Use local date components to ensure accurate date
+function syncFortuneShadow(group) {
+  const shadow = group.userData.shadow;
+  if (!shadow) return;
+  const pivot = group.userData.paperPivot;
+  const rx = pivot ? pivot.rotation.x : group.rotation.x;
+  const ry = pivot ? pivot.rotation.y : group.rotation.y;
+  const rz = pivot ? pivot.rotation.z : group.rotation.z;
+
+  shadow.rotation.x = -rx * 0.3;
+  shadow.rotation.z = rz;
+
+  const tiltX = Math.sin(rx);
+  const tiltY = Math.sin(ry);
+  shadow.position.x = tiltY * 18;
+  shadow.position.y = -(group.userData.paperHeight || 40) / 2 - 10 + tiltX * -14;
+
+  const facing = Math.abs(Math.cos(rx) * Math.cos(ry));
+  shadow.scale.set(0.85 + facing * 0.2, 0.3 + facing * 0.15, 1);
+
+  const baseOpacity = group.userData.shadowOpacity ?? 0.14;
+  if (shadow.material) {
+    shadow.material.opacity = baseOpacity * (0.3 + facing * 0.7);
+  }
+}
+
+let fortuneHost = null;
+let fortuneScene = null;
+let fortuneCamera = null;
+let fortuneRenderer = null;
+let fortuneActive = null;
+let fortuneAnimating = false;
+let fortuneRaf = 0;
+let fortuneQuoteEl = null;
+let fortuneHistory = [];
+
+function randomLandingRotZ() {
+  const side = Math.random() > 0.5 ? 1 : -1;
+  return THREE.MathUtils.degToRad(side * (7 + Math.random() * 5));
+}
+
+function getPreviousFortuneTexts() {
+  return fortuneHistory.slice();
+}
+
+function setFortuneQuote(text) {
+  if (!fortuneQuoteEl) fortuneQuoteEl = document.getElementById("fortuneQuote");
+  if (!fortuneQuoteEl) return;
+  const trimmed = text?.trim();
+  fortuneQuoteEl.textContent = trimmed ? `"${trimmed}"` : "";
+}
+
+function removeActiveFortune() {
+  if (fortuneActive?.group && fortuneScene) {
+    fortuneScene.remove(fortuneActive.group);
+    disposeFortuneGroup(fortuneActive.group);
+  }
+  fortuneActive = null;
+}
+
+function getFortuneStageMetrics() {
+  const vv = window.visualViewport;
+  const width = Math.round(vv?.width ?? window.innerWidth);
+  const height = Math.round(
+    vv?.height ?? window.innerHeight ?? document.documentElement.clientHeight
+  );
+  const offsetTop = Math.round(vv?.offsetTop ?? 0);
+  const offsetLeft = Math.round(vv?.offsetLeft ?? 0);
+
+  return {
+    width,
+    height,
+    centerX: 0,
+    centerY: 0,
+    offsetTop,
+    offsetLeft,
+  };
+}
+
+function syncFortuneViewport() {
+  if (!fortuneHost) return getFortuneStageMetrics();
+
+  const metrics = getFortuneStageMetrics();
+  fortuneHost.style.position = "fixed";
+  fortuneHost.style.top = `${metrics.offsetTop}px`;
+  fortuneHost.style.left = `${metrics.offsetLeft}px`;
+  fortuneHost.style.width = `${metrics.width}px`;
+  fortuneHost.style.height = `${metrics.height}px`;
+  fortuneHost.style.zIndex = "6";
+  fortuneHost.style.pointerEvents = "none";
+
+  if (fortuneRenderer) {
+    fortuneRenderer.setSize(metrics.width, metrics.height, false);
+  }
+  if (fortuneCamera) {
+    fortuneCamera.left = -metrics.width / 2;
+    fortuneCamera.right = metrics.width / 2;
+    fortuneCamera.top = metrics.height / 2;
+    fortuneCamera.bottom = -metrics.height / 2;
+    fortuneCamera.updateProjectionMatrix();
+  }
+
+  return metrics;
+}
+
+
+async function animateFortuneFall(text) {
+  const currentId = readingAnimationId;
+
+  if (!fortuneScene) initFortuneScene();
+  if (!fortuneScene) return;
+
+  removeActiveFortune();
+  fortuneAnimating = true;
+  setFortuneQuote(text);
+
+  let paper;
+  let group;
+  try {
+    paper = createFortunePaperTexture(text);
+    group = createFortunePaperMesh(paper.texture, paper.height);
+  } catch (err) {
+    console.error("Fortune paper render failed:", err);
+    fortuneAnimating = false;
+    return;
+  }
+
+  const { width, height } = getFortuneStageMetrics();
+  const halfH = paper.height / 2;
+  const startY = height / 2 + halfH + 96;
+  const endY = -height / 2 - halfH - 96;
+  const centerX = (Math.random() - 0.5) * width * 0.2;
+
+  group.position.set(centerX, startY, 0);
+  group.userData.opacity = 1;
+  setFortuneShadowOpacity(group, 0.1);
+  fortuneScene.add(group);
+  fortuneActive = { group, text };
+
+  const pivot = getPaperPivot(group);
+  pivot.rotation.set(0, 0, 0);
+
+  const sway1Amp = 28 + Math.random() * 22;
+  const sway1Freq = 0.55 + Math.random() * 0.2;
+  const sway1Phase = Math.random() * Math.PI * 2;
+  const sway2Amp = 10 + Math.random() * 8;
+  const sway2Freq = 1.8 + Math.random() * 0.6;
+  const sway2Phase = Math.random() * Math.PI * 2;
+
+  const spinDir = Math.random() > 0.5 ? 1 : -1;
+  const readableAt = 0.46;
+  const tiltX = 0.34 + Math.random() * 0.14;
+  const tiltY = 0.07;
+  const tiltZ = 0.045;
+  const spinZStart = (Math.random() - 0.5) * 0.55;
+  const spinZRate = spinDir * (0.1 + Math.random() * 0.16);
+  const flutterAmp = 0.035;
+  const flutterFreq = 2.4 + Math.random() * 0.6;
+  const flutterPhase = Math.random() * Math.PI * 2;
+  const rockFreq = 0.7 + Math.random() * 0.3;
+  const rockPhase = Math.random() * Math.PI * 2;
+
+  const duration = FORTUNE_PAPER.fallDuration;
+
+  await new Promise((resolve) => {
+    const start = performance.now();
+
+    const step = (now) => {
+      if (currentId !== readingAnimationId) {
+        resolve();
+        return;
+      }
+
+      const elapsed = now - start;
+      const t = Math.min(1, elapsed / duration);
+      const s = elapsed / 1000;
+
+      group.position.y = startY + (endY - startY) * t;
+
+      const swayMain = Math.sin(s * sway1Freq + sway1Phase) * sway1Amp;
+      const swayFlutter = Math.sin(s * sway2Freq + sway2Phase) * sway2Amp;
+      group.position.x = centerX + swayMain + swayFlutter;
+      group.position.z = Math.sin(s * 1.1) * 4;
+
+      const flatWindow = Math.exp(-Math.pow((t - readableAt) / 0.15, 2) * 2.8);
+      const tumble =
+        spinDir * tiltX * Math.sin((t - readableAt) * Math.PI * 1.1);
+      const flutter =
+        Math.sin(s * flutterFreq + flutterPhase) *
+        flutterAmp *
+        (1 - flatWindow * 0.92);
+
+      pivot.rotation.x = tumble + flutter;
+      pivot.rotation.y =
+        Math.sin(s * rockFreq + rockPhase) * tiltY * (1 - flatWindow * 0.65);
+      pivot.rotation.z =
+        spinZStart +
+        s * spinZRate * (1 - flatWindow * 0.4) +
+        (Math.sin(s * sway1Freq + sway1Phase) * 0.65 +
+          Math.sin(s * sway2Freq + sway2Phase) * 0.35) *
+          tiltZ *
+          (1 - flatWindow * 0.5);
+      syncFortuneShadow(group);
+
+      if (t < 1) requestAnimationFrame(step);
+      else resolve();
+    };
+
+    requestAnimationFrame(step);
+  });
+
+  if (currentId !== readingAnimationId) {
+    if (group.parent) fortuneScene.remove(group);
+    disposeFortuneGroup(group);
+    fortuneAnimating = false;
+    return;
+  }
+
+  fortuneScene.remove(group);
+  disposeFortuneGroup(group);
+  fortuneActive = null;
+  fortuneAnimating = false;
+}
+
+
+function createPaperNoisePattern(ctx) {
+  const tile = document.createElement("canvas");
+  tile.width = 128;
+  tile.height = 128;
+  const tileCtx = tile.getContext("2d");
+  const imageData = tileCtx.createImageData(128, 128);
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const grain = 210 + Math.random() * 45;
+    imageData.data[i] = grain;
+    imageData.data[i + 1] = grain - 4;
+    imageData.data[i + 2] = grain - 10;
+    imageData.data[i + 3] = 28;
+  }
+  tileCtx.putImageData(imageData, 0, 0);
+  return ctx.createPattern(tile, "repeat");
+}
+
+function drawPaperBackground(ctx, width, height) {
+  ctx.save();
+
+  const base = ctx.createLinearGradient(0, 0, width, height);
+  base.addColorStop(0, "#fdf9f1");
+  base.addColorStop(0.45, "#f7f0e3");
+  base.addColorStop(1, "#efe4d2");
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, width, height);
+
+  const warmWash = ctx.createRadialGradient(
+    width * 0.3,
+    height * 0.2,
+    0,
+    width * 0.3,
+    height * 0.2,
+    width * 0.8
+  );
+  warmWash.addColorStop(0, "rgba(255, 252, 245, 0.55)");
+  warmWash.addColorStop(1, "rgba(255, 252, 245, 0)");
+  ctx.fillStyle = warmWash;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = createPaperNoisePattern(ctx);
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+
+  const edgeShade = ctx.createLinearGradient(0, 0, width, 0);
+  edgeShade.addColorStop(0, "rgba(0, 0, 0, 0.07)");
+  edgeShade.addColorStop(0.08, "rgba(0, 0, 0, 0)");
+  edgeShade.addColorStop(0.92, "rgba(0, 0, 0, 0)");
+  edgeShade.addColorStop(1, "rgba(0, 0, 0, 0.07)");
+  ctx.fillStyle = edgeShade;
+  ctx.fillRect(0, 0, width, height);
+
+  const topHighlight = ctx.createLinearGradient(0, 0, 0, height * 0.35);
+  topHighlight.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+  topHighlight.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = topHighlight;
+  ctx.fillRect(0, 0, width, height * 0.35);
+
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.08)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+  ctx.restore();
+}
+
+function createPaperShadowTexture(width, height) {
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(width * 2);
+  canvas.height = Math.round(height * 2);
+  const ctx = canvas.getContext("2d");
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, canvas.width * 0.48);
+  grad.addColorStop(0, "rgba(0, 0, 0, 0.38)");
+  grad.addColorStop(0.55, "rgba(0, 0, 0, 0.14)");
+  grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  if ("SRGBColorSpace" in THREE) {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  }
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function setFortuneShadowOpacity(group, opacity) {
+  const shadow = group.userData.shadow;
+  if (!shadow?.material) return;
+  shadow.material.opacity = opacity;
+  group.userData.shadowOpacity = opacity;
+}
+
+function wrapFortuneLines(ctx, text, maxWidth, maxLines) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [""];
+
+  const lines = [];
+  let current = "";
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = word;
+      if (lines.length >= maxLines) break;
+    } else {
+      current = test;
+    }
+  }
+
+  if (lines.length < maxLines && current) {
+    lines.push(current);
+  } else if (lines.length >= maxLines && current) {
+    let last = lines[maxLines - 1];
+    while (ctx.measureText(`${last}…`).width > maxWidth && last.length > 0) {
+      last = last.slice(0, -1);
+    }
+    lines[maxLines - 1] = `${last}…`;
+  }
+
+  return lines.slice(0, maxLines);
+}
+
+function createFortunePaperTexture(text, options = {}) {
+  const { blank = false } = options;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const maxTextWidth = FORTUNE_PAPER.width - FORTUNE_PAPER.padX * 2;
+
+  const measureCanvas = document.createElement("canvas");
+  const measureCtx = measureCanvas.getContext("2d");
+  measureCtx.font = `italic 400 ${FORTUNE_PAPER.fontSize}px "Libre Baskerville", Georgia, serif`;
+
+  const lines = blank
+    ? [""]
+    : wrapFortuneLines(
+        measureCtx,
+        text,
+        maxTextWidth,
+        FORTUNE_PAPER.maxLines
+      );
+
+  const height =
+    FORTUNE_PAPER.padY * 2 + lines.length * FORTUNE_PAPER.lineHeight;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(FORTUNE_PAPER.width * dpr);
+  canvas.height = Math.round(height * dpr);
+
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+
+  drawPaperBackground(ctx, FORTUNE_PAPER.width, height);
+
+  if (!blank) {
+    ctx.fillStyle = "#c62828";
+    ctx.font = `italic 400 ${FORTUNE_PAPER.fontSize}px "Libre Baskerville", Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const startY =
+      height / 2 - ((lines.length - 1) * FORTUNE_PAPER.lineHeight) / 2;
+
+    lines.forEach((line, i) => {
+      ctx.fillText(
+        line,
+        FORTUNE_PAPER.width / 2,
+        startY + i * FORTUNE_PAPER.lineHeight
+      );
+    });
+  }
+
+  const bottomShade = ctx.createLinearGradient(0, height - 8, 0, height);
+  bottomShade.addColorStop(0, "rgba(0, 0, 0, 0)");
+  bottomShade.addColorStop(1, "rgba(0, 0, 0, 0.06)");
+  ctx.fillStyle = bottomShade;
+  ctx.fillRect(0, height - 8, FORTUNE_PAPER.width, 8);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  if ("SRGBColorSpace" in THREE) {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  }
+  texture.needsUpdate = true;
+
+  return { texture, height, lines };
+}
+
+function createFortunePaperMesh(texture, height) {
+  const group = new THREE.Group();
+  group.userData.paperHeight = height;
+
+  const shadowTexture = createPaperShadowTexture(
+    FORTUNE_PAPER.width * 0.92,
+    height * 0.28
+  );
+  const shadowGeo = new THREE.PlaneGeometry(
+    FORTUNE_PAPER.width * 0.92,
+    height * 0.28
+  );
+  const shadowMat = new THREE.MeshBasicMaterial({
+    map: shadowTexture,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+  shadow.position.y = -height / 2 - 10;
+  shadow.position.z = -1;
+  group.add(shadow);
+  group.userData.shadow = shadow;
+  group.userData.shadowOpacity = 0;
+
+  const paperPivot = new THREE.Group();
+  const geometry = new THREE.PlaneGeometry(FORTUNE_PAPER.width, height);
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.z = 0.5;
+  mesh.scale.x = 1;
+  paperPivot.add(mesh);
+  group.add(paperPivot);
+  group.userData.paperPivot = paperPivot;
+  group.userData.paper = mesh;
+
+  return group;
+}
+
+function getFortunePaperMesh(group) {
+  return group?.userData?.paper || group?.children?.[1] || null;
+}
+
+function disposeFortuneGroup(group) {
+  if (!group) return;
+  group.children.forEach((child) => {
+    child.geometry?.dispose();
+    child.material?.map?.dispose();
+    child.material?.dispose();
+  });
+}
+
+function resizeFortuneScene() {
+  if (!fortuneRenderer || !fortuneCamera || !fortuneHost) return;
+  syncFortuneViewport();
+}
+
+function renderFortuneScene() {
+  if (fortuneRenderer && fortuneScene && fortuneCamera) {
+    fortuneRenderer.render(fortuneScene, fortuneCamera);
+  }
+}
+
+function startFortuneLoop() {
+  if (fortuneRaf) return;
+  const tick = () => {
+    fortuneRaf = requestAnimationFrame(tick);
+    renderFortuneScene();
+  };
+  tick();
+}
+
+function initFortuneScene() {
+  if (fortuneRenderer || typeof THREE === "undefined") return;
+
+  fortuneHost = document.getElementById("fortuneCanvasHost");
+  if (!fortuneHost) return;
+
+  document.body.appendChild(fortuneHost);
+
+  const { width, height } = syncFortuneViewport();
+
+  fortuneScene = new THREE.Scene();
+  fortuneCamera = new THREE.OrthographicCamera(
+    -width / 2,
+    width / 2,
+    height / 2,
+    -height / 2,
+    0.1,
+    1000
+  );
+  fortuneCamera.position.z = 10;
+
+  fortuneRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  fortuneRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  fortuneRenderer.setSize(width, height, false);
+  fortuneHost.appendChild(fortuneRenderer.domElement);
+
+  window.addEventListener("resize", resizeFortuneScene);
+  window.addEventListener("load", resizeFortuneScene);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resizeFortuneScene);
+    window.visualViewport.addEventListener("scroll", resizeFortuneScene);
+  }
+  requestAnimationFrame(() => requestAnimationFrame(resizeFortuneScene));
+  startFortuneLoop();
+}
+
+// --- Reading display logic ---
+
+async function updateJournalCard(dateISO, top3Songs) {
+  if (!fortuneScene) initFortuneScene();
+  if (!fortuneScene) return;
+
   const today = new Date();
   const year = today.getFullYear();
-  const month = today.getMonth() + 1; // getMonth() is 0-indexed
+  const month = today.getMonth() + 1;
   const day = today.getDate();
   const todayISO = `${year}-${String(month).padStart(2, "0")}-${String(
     day
   ).padStart(2, "0")}`;
 
-  // Show "Thinking..." state with pulsating animation
-  const textEl = card.querySelector(".journal-text");
-  if (textEl) {
-    textEl.innerHTML = '<span class="thinking-text">Thinking...</span>';
-    textEl.classList.add("thinking");
-  }
-
-  // Ensure "Thinking..." is painted before proceeding
-  // Use double requestAnimationFrame to guarantee browser has painted
-  await new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        resolve();
-      });
-    });
-  });
+  readingAnimationId += 1;
+  removeActiveFortune();
+  setFortuneQuote("");
 
   try {
-    // Random delay between 3000ms and 5000ms to add variability
-    const minDelay = Math.random() * 2000 + 3000; // 3000-5000ms
-    
-    // Start both the delay timer and fortune generation in parallel
-    // This ensures we always wait the full delay time, even if cache returns instantly
+    const minDelay = Math.random() * 2000 + 3000;
+    const previousFortunes = getPreviousFortuneTexts();
     const [fortuneMessage] = await Promise.all([
-      generateJournalEntryForDay(todayISO, top3Songs),
-      new Promise((resolve) => setTimeout(resolve, minDelay))
+      generateJournalEntryForDay(todayISO, top3Songs, previousFortunes),
+      new Promise((resolve) => setTimeout(resolve, minDelay)),
     ]);
 
-    // Update date to today
-    const dateEl = card.querySelector(".journal-date");
-    if (dateEl) {
-      dateEl.textContent = formatJournalDate(todayISO);
+    fortuneHistory.push(fortuneMessage);
+
+    if (typeof window.playFortuneSwoosh === "function") {
+      window.playFortuneSwoosh();
     }
 
-    // Render fortune message after both delay and generation complete
-    if (textEl) {
-      textEl.classList.remove("thinking");
-      
-      // Play soft swoosh sound immediately, before text update for perfect sync
-      if (typeof window.playFortuneSwoosh === 'function') {
-        window.playFortuneSwoosh();
-      }
-      
-      // Update text immediately after triggering sound
-      textEl.textContent = fortuneMessage;
-    }
+    await animateFortuneFall(fortuneMessage);
   } catch (error) {
-    console.error("Failed to update journal card:", error);
+    console.error("Failed to update reading:", error);
 
-    // Show error message to user
     const errorMessage = error.message || "Unknown error occurred";
     const isApiKeyError = errorMessage.toLowerCase().includes("api key");
 
-    if (textEl) {
-      textEl.classList.remove("thinking");
-      if (isApiKeyError) {
-        textEl.textContent = `${errorMessage}\n\nFor GitHub Pages: Ensure OPENAI_API_KEY secret is configured in repository settings.`;
-      } else {
-        textEl.textContent = `${errorMessage}\n\nCheck the browser console for more details.`;
-      }
+    if (isApiKeyError) {
+      await animateFortuneFall(
+        errorMessage +
+          " For GitHub Pages: Ensure OPENAI_API_KEY secret is configured."
+      );
+    } else {
+      await animateFortuneFall(errorMessage);
     }
   }
 }
 
-// --- Journal Card Parallax Effect ---
-(function initJournalCardParallax() {
-  const card = document.querySelector(".journal-card");
-  if (!card) return;
-
-  let mouseX = 0;
-  let mouseY = 0;
-  let targetX = 0;
-  let targetY = 0;
-  let currentX = 0;
-  let currentY = 0;
-
-  // Track mouse position
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-
-    // Calculate center of viewport
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-
-    // Calculate distance from center (normalized to -1 to 1)
-    const deltaX = (mouseX - centerX) / centerX;
-    const deltaY = (mouseY - centerY) / centerY;
-
-    // Set target position (very subtle movement - max 8px)
-    targetX = deltaX * 8;
-    targetY = deltaY * 8;
-  });
-
-  // Smooth interpolation for subtle movement
-  function animateParallax() {
-    // Ease towards target
-    currentX += (targetX - currentX) * 0.05;
-    currentY += (targetY - currentY) * 0.05;
-
-    // Apply transform
-    card.style.transform = `translate(${currentX}px, ${currentY}px)`;
-
-    requestAnimationFrame(animateParallax);
-  }
-
-  // Start animation loop
-  animateParallax();
-})();
-
 document.addEventListener("DOMContentLoaded", function () {
-  const card = document.querySelector(".journal-card");
-  if (!card) return;
+  initFortuneScene();
 
-  // Check if OpenAI API key is configured
-  // Check if API key is configured (from any source)
-  const apiKey = getOpenAIApiKey();
-  if (!apiKey) {
-    console.warn(
-      "%c⚠️ OpenAI API Key Not Configured",
-      "color: #f59e0b; font-size: 16px; font-weight: bold;"
-    );
-    console.log(
-      "%cTo enable fortune cookie generation:",
-      "color: #333; font-size: 14px; font-weight: bold;"
-    );
-    console.log(
-      "%c• On GitHub Pages: Add OPENAI_API_KEY as a repository secret in Settings → Secrets → Actions",
-      "color: #333; font-size: 14px;"
-    );
-    console.log(
-      "%c• Locally: Copy config.example.js to config.js and add your API key",
-      "color: #333; font-size: 14px;"
-    );
-  } else {
-    console.log(
-      "%c✅ OpenAI API Key configured. Fortune cookies will be generated!",
-      "color: #10a37f; font-size: 14px;"
-    );
-  }
-
-  // Helper function to clear journal cache (useful for testing)
   window.clearJournalCache = function () {
     const keys = Object.keys(localStorage);
     const journalKeys = keys.filter((key) => key.startsWith("journal_entry_"));
     journalKeys.forEach((key) => localStorage.removeItem(key));
-    console.log(
-      `%c🗑️ Cleared ${journalKeys.length} journal cache entries`,
-      "color: #f59e0b; font-size: 14px;"
-    );
-    console.log("Refresh the page to regenerate entries with new format.");
+    console.log(`Cleared ${journalKeys.length} journal cache entries`);
   };
-
-  // Initialize with today's entry if we have Spotify data
-  const accessToken = localStorage.getItem("spotify_access_token");
-  if (accessToken) {
-    initializeJournalCard(accessToken);
-  }
 });
-
-// Initialize journal card with most recent songs
-async function initializeJournalCard(token) {
-  try {
-    const recent = await fetchRecentlyPlayed(token, 50);
-    // Get the 3 most recent unique tracks
-    const top3 = getMostRecentUniqueTracks(recent, 3);
-
-    // Use local date components to ensure accurate date
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1; // getMonth() is 0-indexed
-    const day = today.getDate();
-    const todayISO = `${year}-${String(month).padStart(2, "0")}-${String(
-      day
-    ).padStart(2, "0")}`;
-
-    if (top3 && top3.length > 0) {
-      // Always pass todayISO to ensure journal shows today's date
-      await updateJournalCard(todayISO, top3);
-    }
-  } catch (error) {
-    console.error("Failed to initialize journal card:", error);
-  }
-}
-
-// --- Info Overlay ---
-(function initInfoOverlay() {
-  const overlay = document.querySelector(".info-overlay");
-  const openBtn = document.getElementById("openInfo");
-  const closeBtn = document.getElementById("closeInfo");
-
-  if (!overlay) return;
-
-  // Open/close overlay
-  function openOverlay() {
-    overlay.removeAttribute("hidden");
-    document.body.classList.add("no-scroll");
-  }
-
-  function closeOverlay() {
-    overlay.setAttribute("hidden", "");
-    document.body.classList.remove("no-scroll");
-  }
-
-  if (openBtn) {
-    openBtn.addEventListener("click", openOverlay);
-  }
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closeOverlay);
-  }
-
-  // Close when clicking backdrop
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      closeOverlay();
-    }
-  });
-
-  // Close on Escape key
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) {
-      closeOverlay();
-    }
-  });
-})();
-
-// --- Gradient Customizer ---
-(function initGradientCustomizer() {
-  const frameRoot = document.querySelector(".frame-root");
-  const overlay = document.querySelector(".gradient-customizer-overlay");
-  const openBtn = document.getElementById("openCustomizer");
-  const closeBtn = document.getElementById("closeCustomizer");
-
-  if (!frameRoot || !overlay) return;
-
-  // Open/close overlay
-  function openOverlay() {
-    overlay.removeAttribute("hidden");
-    document.body.classList.add("no-scroll");
-  }
-
-  function closeOverlay() {
-    overlay.setAttribute("hidden", "");
-    document.body.classList.remove("no-scroll");
-  }
-
-  if (openBtn) {
-    openBtn.addEventListener("click", openOverlay);
-  }
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closeOverlay);
-  }
-
-  // Close when clicking backdrop
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      closeOverlay();
-    }
-  });
-
-  // Close on Escape key
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !overlay.hasAttribute("hidden")) {
-      closeOverlay();
-    }
-  });
-
-  // Default gradient colors (current soft red theme)
-  const defaultColors = {
-    color1: "#fefefe",
-    color2: "#fff5f5",
-    color3: "#fff8f8",
-  };
-
-  // Gradient presets
-  const presets = [
-    {
-      name: "Default",
-      colors: { color1: "#fefefe", color2: "#fff5f5", color3: "#fff8f8" },
-    },
-    {
-      name: "Green Tea",
-      colors: { color1: "#f8fcf8", color2: "#e6f5e6", color3: "#d4edda" },
-    },
-    {
-      name: "Sakura",
-      colors: { color1: "#fffefe", color2: "#ffeef0", color3: "#ffe4e6" },
-    },
-    {
-      name: "Ocean",
-      colors: { color1: "#f0f8ff", color2: "#e6f2ff", color3: "#d9ecff" },
-    },
-    {
-      name: "Sunset",
-      colors: { color1: "#fffaf0", color2: "#fff5e6", color3: "#ffe6d9" },
-    },
-    {
-      name: "Lavender",
-      colors: { color1: "#faf9ff", color2: "#f5f2ff", color3: "#f0ebff" },
-    },
-  ];
-
-  let currentPresetIndex = 0;
-
-  // Helper: Convert hex to rgba
-  function hexToRgba(hex, alpha = 1) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-
-  // Generate gradient CSS
-  function generateGradient(color1, color2, color3) {
-    const c1_95 = hexToRgba(color1, 0.95);
-    const c1_5 = hexToRgba(color1, 0.5);
-    const c2_6 = hexToRgba(color2, 0.6);
-    const c2_4 = hexToRgba(color2, 0.4);
-    const c2_35 = hexToRgba(color2, 0.35);
-    const c3_9 = hexToRgba(color3, 0.9);
-    const c3_8 = hexToRgba(color3, 0.8);
-    const c3_5 = hexToRgba(color3, 0.5);
-    const c3_4 = hexToRgba(color3, 0.4);
-    const c3_3 = hexToRgba(color3, 0.3);
-    const c3_25 = hexToRgba(color3, 0.25);
-    const c3_2 = hexToRgba(color3, 0.2);
-
-    return `radial-gradient(
-      ellipse 1400px 900px at 15% 10%,
-      ${c1_95} 0%,
-      ${c1_5} 40%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 1600px 1100px at 85% 90%,
-      ${c2_6} 0%,
-      ${c2_4} 35%,
-      ${c3_2} 60%,
-      transparent 80%
-    ),
-    radial-gradient(
-      ellipse 1000px 1200px at 50% 50%,
-      ${c2_35} 0%,
-      ${c3_2} 45%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 800px 600px at 25% 70%,
-      ${c2_4} 0%,
-      ${c3_25} 50%,
-      transparent 75%
-    ),
-    radial-gradient(
-      ellipse 1200px 800px at 75% 25%,
-      ${c3_9} 0%,
-      ${c3_4} 40%,
-      transparent 70%
-    ),
-    linear-gradient(
-      110deg,
-      ${c3_8} 0%,
-      ${c3_4} 30%,
-      ${c3_3} 60%,
-      ${c3_5} 100%
-    ),
-    ${color1}`;
-  }
-
-  // Apply gradient to background
-  function applyGradient(color1, color2, color3) {
-    const gradient = generateGradient(color1, color2, color3);
-    frameRoot.style.background = gradient;
-
-    // Save to localStorage
-    localStorage.setItem(
-      "customGradient",
-      JSON.stringify({ color1, color2, color3 })
-    );
-  }
-
-  // Get color inputs
-  const color1Picker = document.getElementById("color1");
-  const color1Text = document.getElementById("color1-text");
-  const color2Picker = document.getElementById("color2");
-  const color2Text = document.getElementById("color2-text");
-  const color3Picker = document.getElementById("color3");
-  const color3Text = document.getElementById("color3-text");
-  const applyBtn = document.getElementById("applyGradient");
-  const resetBtn = document.getElementById("resetGradient");
-  const prevPresetBtn = document.getElementById("prevPreset");
-  const nextPresetBtn = document.getElementById("nextPreset");
-  const presetNameEl = document.getElementById("presetName");
-
-  if (
-    !color1Picker ||
-    !color1Text ||
-    !color2Picker ||
-    !color2Text ||
-    !color3Picker ||
-    !color3Text
-  ) {
-    return;
-  }
-
-  // Sync color picker with text input
-  function syncColorInputs(picker, textInput) {
-    picker.addEventListener("input", (e) => {
-      textInput.value = e.target.value.toUpperCase();
-    });
-    textInput.addEventListener("input", (e) => {
-      const value = e.target.value;
-      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        picker.value = value;
-      }
-    });
-    textInput.addEventListener("blur", (e) => {
-      const value = e.target.value;
-      if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        e.target.value = picker.value.toUpperCase();
-      }
-    });
-  }
-
-  syncColorInputs(color1Picker, color1Text);
-  syncColorInputs(color2Picker, color2Text);
-  syncColorInputs(color3Picker, color3Text);
-
-  // Apply button
-  if (applyBtn) {
-    applyBtn.addEventListener("click", () => {
-      const color1 = color1Picker.value;
-      const color2 = color2Picker.value;
-      const color3 = color3Picker.value;
-      applyGradient(color1, color2, color3);
-      closeOverlay();
-    });
-  }
-
-  // Reset button
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      color1Picker.value = defaultColors.color1;
-      color1Text.value = defaultColors.color1.toUpperCase();
-      color2Picker.value = defaultColors.color2;
-      color2Text.value = defaultColors.color2.toUpperCase();
-      color3Picker.value = defaultColors.color3;
-      color3Text.value = defaultColors.color3.toUpperCase();
-      applyGradient(
-        defaultColors.color1,
-        defaultColors.color2,
-        defaultColors.color3
-      );
-      currentPresetIndex = 0;
-      if (presetNameEl) presetNameEl.textContent = presets[0].name;
-    });
-  }
-
-  // Load preset
-  function loadPreset(index) {
-    if (index < 0 || index >= presets.length) return;
-    currentPresetIndex = index;
-    const preset = presets[index];
-
-    color1Picker.value = preset.colors.color1;
-    color1Text.value = preset.colors.color1.toUpperCase();
-    color2Picker.value = preset.colors.color2;
-    color2Text.value = preset.colors.color2.toUpperCase();
-    color3Picker.value = preset.colors.color3;
-    color3Text.value = preset.colors.color3.toUpperCase();
-
-    if (presetNameEl) presetNameEl.textContent = preset.name;
-
-    applyGradient(
-      preset.colors.color1,
-      preset.colors.color2,
-      preset.colors.color3
-    );
-  }
-
-  // Preset navigation
-  if (prevPresetBtn) {
-    prevPresetBtn.addEventListener("click", () => {
-      const newIndex =
-        (currentPresetIndex - 1 + presets.length) % presets.length;
-      loadPreset(newIndex);
-    });
-  }
-
-  if (nextPresetBtn) {
-    nextPresetBtn.addEventListener("click", () => {
-      const newIndex = (currentPresetIndex + 1) % presets.length;
-      loadPreset(newIndex);
-    });
-  }
-
-  // Load saved gradient on page load
-  const saved = localStorage.getItem("customGradient");
-  if (saved) {
-    try {
-      const { color1, color2, color3 } = JSON.parse(saved);
-      color1Picker.value = color1;
-      color1Text.value = color1.toUpperCase();
-      color2Picker.value = color2;
-      color2Text.value = color2.toUpperCase();
-      color3Picker.value = color3;
-      color3Text.value = color3.toUpperCase();
-      applyGradient(color1, color2, color3);
-    } catch (e) {
-      console.error("Failed to load saved gradient", e);
-    }
-  }
-})();
-
-// Settings functionality removed - API key is now configured in app.js
 
 // --- Refresh Functionality ---
 (function initRefresh() {
@@ -2794,63 +2234,39 @@ async function initializeJournalCard(token) {
   if (!refreshBtn) return;
 
   refreshBtn.addEventListener("click", async () => {
-    // Check if user is connected to Spotify
     const token = localStorage.getItem("spotify_access_token");
-    if (!token) {
-      // User not connected, show a brief message or do nothing
-      console.log("Cannot refresh: Not connected to Spotify");
-      return;
-    }
+    if (!token) return;
 
     // Disable button and show loading state
     refreshBtn.disabled = true;
     refreshBtn.classList.add("refreshing");
 
     try {
-      console.log("🔄 Manual refresh triggered by user");
-      await updateLeftStackFromSpotify(token);
+      await updateLeftStackFromSpotify(token, { generateFortune: true });
     } catch (error) {
       console.error("Failed to refresh songs:", error);
 
-      // If token expired, try to refresh it
       if (error.status === 401) {
         const refreshToken = localStorage.getItem("spotify_refresh_token");
         if (refreshToken) {
           try {
-            console.log("🔄 Access token expired, attempting to refresh...");
-            const refreshed = await refreshAccessToken(
-              SPOTIFY_CLIENT_ID,
-              refreshToken
-            );
+            const refreshed = await refreshAccessToken(SPOTIFY_CLIENT_ID, refreshToken);
             const newAccess = refreshed.access_token;
             const newRefresh = refreshed.refresh_token || refreshToken;
-
             if (newAccess) {
               localStorage.setItem("spotify_access_token", newAccess);
-              if (newRefresh) {
-                localStorage.setItem("spotify_refresh_token", newRefresh);
-              }
-              console.log(
-                "✅ Token refreshed successfully, retrying update..."
-              );
-
-              // Retry the update with the new token
-              await updateLeftStackFromSpotify(newAccess);
+              if (newRefresh) localStorage.setItem("spotify_refresh_token", newRefresh);
+              await updateLeftStackFromSpotify(newAccess, { generateFortune: true });
             } else {
               throw new Error("No access token in refresh response");
             }
           } catch (refreshError) {
-            console.error("❌ Failed to refresh access token:", refreshError);
-            // Token refresh failed, user needs to reconnect
+            console.error("Failed to refresh access token:", refreshError);
             localStorage.removeItem("spotify_access_token");
             localStorage.removeItem("spotify_refresh_token");
             setAuthUIConnected(false);
           }
         } else {
-          // No refresh token available, user needs to reconnect
-          console.error(
-            "❌ No refresh token available, user needs to reconnect"
-          );
           localStorage.removeItem("spotify_access_token");
           localStorage.removeItem("spotify_refresh_token");
           setAuthUIConnected(false);
